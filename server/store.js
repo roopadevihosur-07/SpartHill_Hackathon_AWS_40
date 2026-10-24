@@ -265,6 +265,21 @@ export function buildCards(store, session) {
   return { confirmation, dispatch: dispatchCard };
 }
 
+/**
+ * Coordinates for the coordinator map. The caller is shown at their neighborhood
+ * centre, never at the exact point the agent stored (that point stays server-side).
+ */
+export function mapPointsFor(store, dispatch) {
+  const session = store.sessions.get(dispatch.sessionId);
+  const hood = store.neighborhoods[session?.neighborhood];
+  const driver = store.drivers.get(dispatch.driverId);
+  return {
+    driver: driver ? { lat: driver.homeLat, lng: driver.homeLng } : null,
+    pickup: { lat: dispatch.pickup.lat, lng: dispatch.pickup.lng },
+    dropoff: hood ? { lat: hood.lat, lng: hood.lng, label: hood.label } : null,
+  };
+}
+
 export function dispatchCardFor(store, dispatch) {
   const driver = store.drivers.get(dispatch.driverId);
   const etaMin = Math.max(1, Math.ceil((dispatch.etaAt - Date.now()) / 60000));
@@ -308,16 +323,18 @@ export function adminSnapshot(store) {
     sites: [...store.sites.values()].map((s) => ({
       id: s.id, kind: s.kind, name: s.name, address: s.address, open: s.open, hasPower: s.hasPower,
       hours: s.hours, inventory: s.inventory, initialInventory: s.initialInventory, version: s.version,
+      lat: s.lat, lng: s.lng,
     })),
     drivers: [...store.drivers.values()].map((d) => ({
       id: d.id, name: d.name, vehicle: d.vehicle, status: d.status,
       load: [...store.dispatches.values()].filter((x) => x.driverId === d.id && ['assigned', 'accepted'].includes(x.status)).length,
+      lat: d.homeLat, lng: d.homeLng,
     })),
     holds: [...store.holds.values()].slice(-60).map((h) => ({
       id: h.id, sessionId: h.sessionId, siteId: h.siteId, siteName: store.sites.get(h.siteId)?.name,
       item: h.item, itemLabel: itemLabel(store, h.item), status: h.status, createdAt: h.createdAt,
     })),
-    dispatches: [...store.dispatches.values()].slice(-60).map((d) => ({ ...dispatchCardFor(store, d), sessionId: d.sessionId })),
+    dispatches: [...store.dispatches.values()].slice(-60).map((d) => ({ ...dispatchCardFor(store, d), sessionId: d.sessionId, map: mapPointsFor(store, d) })),
     approvals: [...store.approvals.values()].map((a) => ({
       id: a.id, sessionId: a.sessionId, status: a.status, summary: a.summary, createdAt: a.createdAt, decidedAt: a.decidedAt ?? null,
     })),

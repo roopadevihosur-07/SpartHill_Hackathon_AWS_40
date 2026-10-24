@@ -39,7 +39,7 @@ app.use((req, res, next) => {
     'X-Frame-Options': 'DENY',
     'Permissions-Policy': 'microphone=(self), camera=(), geolocation=()',
     'Content-Security-Policy':
-      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+      "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
   });
   next();
 });

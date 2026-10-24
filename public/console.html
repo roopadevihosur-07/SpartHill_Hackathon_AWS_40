@@ -7,6 +7,7 @@
   <title>Lifeline: Coordinator console</title>
   <link rel="icon" type="image/svg+xml" href="/img/logo.svg">
   <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="">
 </head>
 <body class="console">
   <div id="gate-mount"></div>
@@ -20,6 +21,20 @@
       </div>
     </header>
     <section class="kpi-strip" id="kpis" aria-label="Key numbers"></section>
+
+    <section class="panel map-section" aria-labelledby="map-title">
+      <h2 id="map-title">Live map <span class="small muted">sites, drivers and routes</span> <span class="badge demo" title="Driver positions move along each route for display. They are not GPS.">Movement simulated</span></h2>
+      <div id="map" class="map" role="region" aria-label="Map of sites, drivers and active routes"></div>
+      <ul class="legend small" aria-label="Map key">
+        <li><span class="pin k-pharmacy"></span> Pharmacy</li>
+        <li><span class="pin k-food_bank"></span> Food bank</li>
+        <li><span class="pin k-cooling_center"></span> Cooling center</li>
+        <li><span class="pin empty"></span> No stock or closed</li>
+        <li><span class="pin driver"></span> Driver on route</li>
+        <li><span class="pin base"></span> Driver base</li>
+        <li><span class="pin caller"></span> Caller area (approximate)</li>
+      </ul>
+    </section>
 
     <main class="grid">
       <section aria-label="Needs your attention">
@@ -51,6 +66,7 @@
       </section>
     </main>
   </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin=""></script>
   <script type="module" src="/js/console.js"></script>
 </body>
 </html>

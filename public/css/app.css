@@ -213,3 +213,21 @@ a.btn { text-decoration: none; }
 
 /* Caller page uses the full screen width. */
 .caller-page .wrap { max-width: none; padding: 1.5rem clamp(1.25rem, 4vw, 4rem) 2rem; }
+
+/* Coordinator live map */
+.map-section { margin: 1rem 1.25rem 0; }
+.map-section h2 { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.8rem; }
+.map { height: 440px; border-radius: 8px; border: 1px solid var(--line); z-index: 0; }
+.map .leaflet-tooltip { font-size: 0.8rem; }
+.legend { list-style: none; margin: 0.7rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; color: var(--ink-soft); }
+.legend li { display: inline-flex; align-items: center; gap: 0.4rem; }
+.pin { display: block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 28, 36, 0.35); }
+.legend .pin { display: inline-block; }
+.pin.k-pharmacy { background: #0972d3; }
+.pin.k-food_bank { background: #1d8102; }
+.pin.k-cooling_center { background: #ec7211; }
+.pin.empty { background: #879596; }
+.pin.caller { background: var(--ink); width: 16px; height: 16px; }
+.pin.base { background: #fff; border: 2px dashed #d13212; width: 12px; height: 12px; box-shadow: none; }
+.pin.driver { background: #d13212; width: 18px; height: 18px; box-shadow: 0 0 0 4px rgba(209, 50, 18, 0.25); }
+.map .pin.driver { animation: none; }

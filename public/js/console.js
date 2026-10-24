@@ -1,4 +1,5 @@
 import { el, clear, api, connectSse, ensureAdminAccess, fmtTime } from './common.js';
+import { createLiveMap } from './map.js';
 
 const $ = (id) => document.getElementById(id);
 let token = '';
@@ -139,8 +140,13 @@ function renderResidents(residents) {
   if (current) sel.value = current;
 }
 
+let liveMap = null;
+
 function render() {
   if (!snap) return;
+  // Created on first render, after the console is visible, so Leaflet measures a real size.
+  liveMap ??= createLiveMap($('map'));
+  liveMap.update(snap);
   renderKpis(snap.metrics);
   renderApprovals(snap.approvals);
   renderAlerts(snap.alerts);
