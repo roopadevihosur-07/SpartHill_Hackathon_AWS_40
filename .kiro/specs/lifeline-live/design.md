@@ -67,7 +67,9 @@ These are choices made while building. Each is a decision for the team to confir
 - **Req 8.3**: for a re-plan with no alternative the hold is already void (the site reported zero), the dispatch is marked failed, and the caller card shows the failure.
 - **Req 13.3**: redaction is rule-based (Comprehend is unavailable): phones, emails, ids, street addresses, "my name is X" with a capitalised name, and known resident names. It misses lowercase spoken names and unusual formats.
 - **Req 13.4 / 14**: ETAs and distances are straight-line estimates with a road factor; Amazon Location Service is unavailable.
-- **Model**: Nova Pro by default because Claude on this account needs the Anthropic use-case form first.
+- **Batching policy (plan: "food is added to the same driver's route")**: routine jobs always batch; urgent non-medicine jobs batch if they arrive within 20 min; critical jobs and all medicine never batch. Chosen because the model labels most food requests "urgent" and the demo moment would otherwise never occur. Change `mayBatch` in `server/dispatch.js` to alter it.
+- **Demo endpoints default**: on only for localhost; off on a network host unless `DEMO_MODE=1`.
+- **Model**: Nova Pro by default. Claude Haiku 4.5 also works in the event account (it needs the Anthropic use-case form in other accounts). Not benchmarked on the full flow yet.
 - **Req 15.4**: Spanish and Vietnamese work for agent replies and 911 guidance; voice quality depends on the browser's installed voices.
 
 ## AWS integration
@@ -97,4 +99,4 @@ Bedrock throttling retries with backoff (400 ms, 800 ms, 1.6 s). A failed agent 
 
 ## Testing
 
-`npm run scenarios` (8 end-to-end scenarios on the real model plus a no-placeholder check), `npm run test:paths` (43 failure-path checks), `npm run surge` (tool layer 25 to 200 concurrent, plus optional live-agent run).
+`npm run scenarios` (8 end-to-end scenarios on the real model plus a no-placeholder check), `npm run test:paths` (45 failure-path checks), `npm run test:resilience` (14), `npm run test:dispatch` (8), `npm run test:voice` (17) and `npm run test:voice:browser` (15), `npm run surge` (tool layer 25 to 200 concurrent, plus optional live-agent run).

@@ -126,6 +126,18 @@ check('clean strips unclosed <thinking>', clean('Hello <thinking>oops') === 'Hel
   out.push(`      took ${((Date.now() - t0) / 1000).toFixed(1)} s; agent said: ${s.transcript.filter((t) => t.role === 'assistant').map((t) => t.text).join(' | ')}`);
 }
 
+// ---- failed tool calls must be logged in words Rosa can read
+{
+  const store = createStore(seed);
+  const s = createSession(store, {});
+  await runTool(store, s, 'find_resource', { resource_type: 'medicine', item: 'unobtainium', reason: 't' });
+  await runTool(store, s, 'find_resource', { resource_type: 'medicine', reason: 't' });
+  await runTool(store, s, 'classify_need', { resource_type: 'banana', urgency: 'urgent', reason: 't' });
+  const bad = store.log.filter((l) => l.kind.startsWith('tool:') && /undefined/.test(l.summary));
+  check('failed tool calls never log the word "undefined"', bad.length === 0, bad.map((l) => l.summary).join(' | '));
+  check('a failed lookup says what failed', store.log.some((l) => /find_resource could not run for medicine\/unobtainium: unknown_item/.test(l.summary)));
+}
+
 // ---- 911 guidance must not wait behind a slow turn (real Bedrock for the slow turn)
 {
   const { handleUserMessage } = await import(`${R}/agent.js`);

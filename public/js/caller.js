@@ -1,4 +1,5 @@
 import { el, clear, api } from './common.js';
+import { pickVoice, voicesFor, isEcho, PROSODY, SAMPLE } from './voice.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -11,6 +12,10 @@ const FILLER = {
 const SILENCE_MS = 1500; // end of utterance
 const REQUEST_TIMEOUT_MS = 15000; // show an error + retry after this long
 const FILLER_AFTER_MS = 1800;
+// After Lifeline stops talking, keep the microphone closed this long so the end of its own voice
+// and the room echo are not transcribed as the caller.
+const ECHO_GUARD_MS = 900;
+const VOICE_KEY = 'lifeline.voice';
 
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const synth = 'speechSynthesis' in window ? window.speechSynthesis : null;
@@ -31,8 +36,19 @@ const S = {
   fillerSpoken: false,
   silenceTimer: null,
   finalBuf: '',
+  interimBuf: '',
   residentSource: null,
+  speaking: false, // true from the moment Lifeline starts talking until its last sentence ends
+  speechGen: 0, // bumped on cancel so a cancelled utterance cannot start the next one
+  cancelledAt: 0,
+  listenBlockedUntil: 0,
+  resumeTimer: null,
+  spokenRecent: [], // what Lifeline said lately, for echo detection
 };
+
+const baseLang = (lang) => lang.split('-')[0];
+const savedVoices = () => { try { return JSON.parse(localStorage.getItem(VOICE_KEY) ?? '{}'); } catch { return {}; } };
+const currentVoice = (lang) => pickVoice(synth?.getVoices?.() ?? [], lang, savedVoices()[baseLang(lang)]);
 
 // ------------------------------------------------------------------ ui helpers
 
@@ -87,38 +103,84 @@ function renderCards(cards) {
 
 // ------------------------------------------------------------------ speech output
 
-function pickVoice(lang) {
-  const voices = synth?.getVoices?.() ?? [];
-  const base = lang.split('-')[0];
-  return voices.find((v) => v.lang === lang) ?? voices.find((v) => v.lang.startsWith(base)) ?? null;
-}
-
 function enqueueSpeech(text) {
   if (!synth || S.state === 'ended') return;
+  S.spokenRecent.push(text);
+  if (S.spokenRecent.length > 4) S.spokenRecent.shift();
   S.speakQueue.push(text);
-  if (!synth.speaking) speakNext();
+  if (!S.speaking) speakNext();
 }
 
 function speakNext() {
   const text = S.speakQueue.shift();
-  if (text === undefined) {
-    if (S.state === 'speaking') startListening();
-    return;
-  }
-  stopListening();
+  if (text === undefined) { endSpeaking(); return; }
+  stopListening(); // never listen while talking
+  S.speaking = true;
   setState('speaking');
+  const gen = S.speechGen;
+  const lang = SPEECH_LANG[S.language];
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = SPEECH_LANG[S.language];
-  const voice = pickVoice(u.lang);
+  u.lang = lang;
+  const voice = currentVoice(lang);
   if (voice) u.voice = voice;
-  u.onend = speakNext;
-  u.onerror = speakNext;
-  synth.speak(u);
+  Object.assign(u, PROSODY);
+  const next = () => { if (gen === S.speechGen) speakNext(); };
+  u.onend = next;
+  u.onerror = next;
+  // Chrome can drop a speak() issued right after cancel(), so leave it a moment.
+  const wait = Math.max(0, S.cancelledAt + 90 - Date.now());
+  if (wait) setTimeout(() => { if (gen === S.speechGen) synth.speak(u); }, wait);
+  else synth.speak(u);
+}
+
+function endSpeaking() {
+  S.speaking = false;
+  S.listenBlockedUntil = Date.now() + ECHO_GUARD_MS;
+  clearTimeout(S.resumeTimer);
+  S.resumeTimer = setTimeout(resumeListening, ECHO_GUARD_MS + 50);
+}
+
+/** Open the microphone again if nothing is happening. Safe to call at any time. */
+function resumeListening() {
+  if (S.state === 'ended' || !S.sessionId || S.busy || S.speaking || S.speakQueue.length) return;
+  if (S.micAllowed) startListening();
+  else setState('idle', 'Type your message below');
 }
 
 function cancelSpeech() {
+  S.speechGen++; // anything cancelled here must not start the next utterance
   S.speakQueue = [];
+  S.speaking = false;
+  S.cancelledAt = Date.now();
   synth?.cancel();
+}
+
+// ------------------------------------------------------------------ voice picker
+
+function populateVoices() {
+  const sel = $('voice');
+  if (!sel || !synth) return;
+  const lang = SPEECH_LANG[$('language').value] ?? 'en-US';
+  const voices = voicesFor(synth.getVoices(), lang);
+  clear(sel);
+  $('voice-row').classList.toggle('hidden', voices.length === 0);
+  for (const v of voices) sel.append(el('option', { value: v.name, text: v.name.replace(/^Microsoft\s+/i, '').replace(/\s*-\s*[A-Za-z ()]+$/, '') }));
+  const chosen = currentVoice(lang);
+  if (chosen) sel.value = chosen.name;
+}
+
+function sampleVoice() {
+  if (!synth) return;
+  const language = $('language').value;
+  const lang = SPEECH_LANG[language] ?? 'en-US';
+  const voices = synth.getVoices();
+  const voice = voices.find((v) => v.name === $('voice').value) ?? currentVoice(lang);
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(SAMPLE[language] ?? SAMPLE.en);
+  u.lang = lang;
+  if (voice) u.voice = voice;
+  Object.assign(u, PROSODY);
+  setTimeout(() => synth.speak(u), 90);
 }
 
 // ------------------------------------------------------------------ speech input
@@ -139,24 +201,33 @@ async function ensureMic() {
 }
 
 function startListening() {
-  if (!SR || !S.micAllowed || S.busy || S.state === 'ended' || S.recognition) return;
+  if (!SR || !S.micAllowed || S.busy || S.state === 'ended' || S.recognition || !S.sessionId) return;
+  // Never open the microphone while Lifeline is talking or just after, or it hears itself.
+  if (S.speaking || S.speakQueue.length || synth?.speaking) return;
+  const wait = S.listenBlockedUntil - Date.now();
+  if (wait > 0) { clearTimeout(S.resumeTimer); S.resumeTimer = setTimeout(resumeListening, wait + 50); return; }
+
   const r = new SR();
   r.lang = SPEECH_LANG[S.language];
   r.continuous = true;
   r.interimResults = true;
   S.finalBuf = '';
+  S.interimBuf = '';
   r.onresult = (e) => {
+    if (S.recognition !== r) return; // a recognizer we already closed must not send anything
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
       const t = e.results[i][0].transcript;
       if (e.results[i].isFinal) S.finalBuf += `${t} `;
       else interim += t;
     }
-    $('interim').textContent = (S.finalBuf + interim).trim();
+    S.interimBuf = interim;
+    $('interim').textContent = `${S.finalBuf}${interim}`.trim();
     clearTimeout(S.silenceTimer);
     S.silenceTimer = setTimeout(finishUtterance, SILENCE_MS);
   };
   r.onerror = (e) => {
+    if (S.recognition !== r) return;
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
       S.micAllowed = false;
       banner('error', 'Voice input is unavailable because microphone access was denied. You can type your request instead.');
@@ -166,8 +237,9 @@ function startListening() {
     }
   };
   r.onend = () => {
-    S.recognition = null;
-    if (S.state === 'listening' && !S.busy) setTimeout(startListening, 250); // browsers stop on silence
+    if (S.recognition !== r) return;
+    S.recognition = null; // browsers stop on silence: reopen unless we are busy or talking
+    setTimeout(resumeListening, 250);
   };
   try {
     r.start();
@@ -183,17 +255,31 @@ function stopListening() {
   clearTimeout(S.silenceTimer);
   const r = S.recognition;
   S.recognition = null;
-  if (r) { r.onend = null; try { r.stop(); } catch { /* already stopped */ } }
+  if (r) {
+    // Detach everything first: a stopping recognizer can still deliver its last result, and
+    // that result must not be sent. abort() discards it, where stop() would deliver it.
+    r.onresult = null; r.onerror = null; r.onend = null;
+    try { r.abort(); } catch { try { r.stop(); } catch { /* already stopped */ } }
+  }
+  S.finalBuf = '';
+  S.interimBuf = '';
   $('interim').textContent = '';
   $('mic').textContent = 'Microphone';
 }
 
 function finishUtterance() {
-  const text = (S.finalBuf + ' ' + $('interim').textContent).trim().replace(/\s+/g, ' ');
-  S.finalBuf = '';
+  // finalBuf holds the finished phrases, interimBuf the phrase still in progress. (The on-screen
+  // preview shows both, so reading it back as well sent every word twice.)
+  const text = `${S.finalBuf} ${S.interimBuf}`.trim().replace(/\s+/g, ' ');
   stopListening();
-  if (text) send(text);
-  else if (S.state === 'listening') startListening();
+  if (text.length < 2) { resumeListening(); return; }
+  if (isEcho(text, S.spokenRecent)) {
+    // The microphone picked up Lifeline's own voice. Drop it instead of answering ourselves.
+    console.info('Ignored echo of Lifeline\'s own voice:', text);
+    resumeListening();
+    return;
+  }
+  send(text);
 }
 
 // ------------------------------------------------------------------ talking to the server
@@ -234,9 +320,7 @@ async function send(text, existing) {
     clearTimeout(timeout);
     clearTimeout(S.fillerTimer);
     S.busy = false;
-    if (!synth?.speaking && S.speakQueue.length === 0 && S.state !== 'ended') {
-      if (S.micAllowed) startListening(); else setState('idle', 'Type your message below');
-    }
+    resumeListening(); // waits if Lifeline is still speaking
   }
 }
 
@@ -265,6 +349,9 @@ async function beginCall({ sessionId, language, greeting, messages, cards }) {
 
   // Show (and speak) the greeting first so it never lands below the caller's first message
   // while the browser's microphone permission prompt is open.
+  S.spokenRecent = [];
+  S.speaking = false;
+  S.listenBlockedUntil = 0;
   if (greeting) { addBubble('assistant', greeting); enqueueSpeech(greeting); }
   if (!SR) {
     banner('info', 'Voice input is not supported in this browser, so please type your request below. Replies are still shown as text.');
@@ -274,8 +361,8 @@ async function beginCall({ sessionId, language, greeting, messages, cards }) {
   }
   renderMessages(messages);
   renderCards(cards);
-  if (!synth?.speaking && S.micAllowed) startListening();
-  else if (!S.micAllowed) setState('idle', 'Type your message below');
+  if (!S.micAllowed) setState('idle', 'Type your message below');
+  else if (!S.speaking && !S.speakQueue.length) resumeListening();
   $('textinput').focus({ preventScroll: true });
 }
 
@@ -293,6 +380,7 @@ async function startInbound() {
 
 function endCall() {
   setState('ended');
+  clearTimeout(S.resumeTimer);
   stopListening();
   cancelSpeech();
   S.events?.close();
@@ -356,8 +444,20 @@ async function init() {
     $('textinput').value = '';
     send(v);
   });
-  $('language').addEventListener('change', () => { S.language = $('language').value; });
-  synth?.getVoices?.(); // warm the voice list
+  $('language').addEventListener('change', () => { S.language = $('language').value; populateVoices(); });
+  if (synth) {
+    populateVoices();
+    synth.addEventListener?.('voiceschanged', populateVoices); // browsers load voices asynchronously
+    $('voice').addEventListener('change', () => {
+      const saved = savedVoices();
+      saved[baseLang(SPEECH_LANG[$('language').value] ?? 'en-US')] = $('voice').value;
+      try { localStorage.setItem(VOICE_KEY, JSON.stringify(saved)); } catch { /* private mode */ }
+      sampleVoice();
+    });
+    $('voice-sample').addEventListener('click', sampleVoice);
+  } else {
+    $('voice-row').classList.add('hidden');
+  }
   if (!SR) $('mic')?.classList.add('hidden');
 }
 

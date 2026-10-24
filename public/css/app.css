@@ -106,6 +106,9 @@ label { font-weight: 600; }
 @media (max-width: 560px) { .fields { grid-template-columns: 1fr; } }
 .fields label { display: block; margin-bottom: 0.3rem; font-size: 0.9rem; }
 .privacy-note { color: var(--muted); font-size: 0.85rem; margin: 0 0 1rem; }
+.voice-row { margin-bottom: 0.9rem; }
+.voice-row label { display: block; margin-bottom: 0.3rem; font-size: 0.9rem; }
+.tip { margin: 0.2rem 0 0.4rem; }
 .controls { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.5rem 0; }
 .setup details { margin-top: 1rem; padding-top: 0.9rem; border-top: 1px solid var(--line-soft); }
 .setup details label { display: block; margin: 0.6rem 0 0.3rem; }

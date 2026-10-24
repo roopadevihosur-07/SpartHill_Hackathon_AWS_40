@@ -30,6 +30,13 @@
           <select id="hood"></select>
         </div>
       </div>
+      <div id="voice-row" class="voice-row">
+        <label for="voice">Lifeline's voice</label>
+        <div class="row">
+          <select id="voice"></select>
+          <button id="voice-sample" class="btn small" type="button">Hear it</button>
+        </div>
+      </div>
       <p class="privacy-note">Lifeline uses this area to find the nearest sites. It only asks for a street address if a driver must find you, and only with your permission.</p>
       <div class="controls">
         <button id="start" class="btn primary mic" type="button">Start call</button>
@@ -52,6 +59,7 @@
           <button id="mic" class="btn primary mic" type="button">Microphone</button>
           <button id="end" class="btn" type="button">End call</button>
         </div>
+        <p class="small muted tip">Tip: headphones work best. Without them, keep the volume low so the microphone does not hear Lifeline.</p>
         <div id="interim" class="small muted" aria-hidden="true"></div>
         <div id="transcript" class="transcript" role="log" aria-live="polite" aria-label="Conversation"></div>
         <form id="textform" class="textform" autocomplete="off">

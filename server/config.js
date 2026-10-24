@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
 
+export const isLoopback = (host) => ['127.0.0.1', 'localhost', '::1'].includes(host);
+
 const int = (value, fallback) => {
   const n = Number.parseInt(value ?? '', 10);
   return Number.isFinite(n) ? n : fallback;
@@ -31,7 +33,10 @@ export const config = {
   enableTestApi: process.env.ENABLE_TEST_API === '1',
   rateLimitPerMin: int(process.env.RATE_LIMIT_PER_MIN, 40),
   maxMessageChars: 1000,
-  demoMode: process.env.DEMO_MODE !== '0',
+  // Demo-only endpoints (resident list, answering the outbound "we call you" call). Safe by default:
+  // on only when the server is bound to this machine. On a shared network they stay off unless
+  // DEMO_MODE=1 is set deliberately, because they expose resident names and enrolled needs.
+  demoMode: process.env.DEMO_MODE === '1' || (process.env.DEMO_MODE !== '0' && isLoopback(process.env.HOST || '127.0.0.1')),
   bedrockTimeoutMs: int(process.env.BEDROCK_TIMEOUT_MS, 30000),
   // Bedrock Guardrail applied to every model call. On automatically when infra/aws-setup.sh has
   // run; BEDROCK_GUARDRAIL=0 turns it off, BEDROCK_GUARDRAIL_ID / _VERSION override it.
@@ -41,4 +46,3 @@ export const config = {
   telemetry: process.env.AWS_TELEMETRY === '0' ? false : Boolean(aws?.decisionLogGroup),
 };
 
-export const isLoopback = (host) => ['127.0.0.1', 'localhost', '::1'].includes(host);

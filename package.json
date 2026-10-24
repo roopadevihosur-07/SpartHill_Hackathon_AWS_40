@@ -12,6 +12,10 @@
     "dev": "node --watch --env-file-if-exists=.env server/index.js",
     "scenarios": "node --env-file-if-exists=.env scripts/scenarios.mjs",
     "test:paths": "node --env-file-if-exists=.env scripts/paths.mjs",
+    "test:dispatch": "node scripts/dispatch-unit.mjs",
+    "test:resilience": "node --env-file-if-exists=.env scripts/resilience.mjs",
+    "test:voice": "node scripts/voice-unit.mjs",
+    "test:voice:browser": "node scripts/voice-browser.mjs",
     "bench": "node --env-file-if-exists=.env scripts/bench-models.mjs",
     "surge": "node --env-file-if-exists=.env scripts/surge.mjs"
   },

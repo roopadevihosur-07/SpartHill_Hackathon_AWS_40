@@ -76,7 +76,11 @@ The coordinator console has an **AWS footprint** panel with live status and link
 
 ```bash
 npm run scenarios          # 8 end-to-end scenarios + a no-placeholder check, real model (server must be running)
-npm run test:paths         # 43 checks: redaction, grounding, 911-not-queued, driver decline, approval rejection, no-alternative re-plan, TTL
+npm run test:paths         # 45 checks: redaction, grounding, 911-not-queued, driver decline, approval rejection, no-alternative re-plan, TTL, readable logs
+npm run test:resilience    # 14 checks: broken Guardrail, dead AWS credentials (911 still works), safe defaults on a network host
+npm run test:dispatch      # 8 checks: driver choice and batching rules (instant, no AWS)
+npm run test:voice         # 17 checks: voice choice and echo detection (no browser, no AWS)
+npm install --no-save puppeteer-core && npm run test:voice:browser   # 15 checks in a real Chrome with a fake microphone: no doubled words, no answering its own voice
 ENABLE_TEST_API=1 RATE_LIMIT_PER_MIN=5000 npm start
 npm run surge -- --agent 8 # tool layer at 25/50/100/200 concurrent callers + 8 live agent calls
 ```
@@ -84,6 +88,17 @@ npm run surge -- --agent 8 # tool layer at 25/50/100/200 concurrent callers + 8 
 Measured on a laptop with Nova Pro: tool layer p95 84 to 127 ms with 0 faults at up to 200 concurrent callers; 8 concurrent live agent calls all succeeded, p95 6.0 s; 911 guidance reaches the caller's stream in about 6 ms (and within 500 ms even while another message is being processed); re-plan took 10.5 to 22.2 s over five runs (target 30 s). The Guardrail adds about 200 ms per model call. Your numbers will differ with network and model load.
 
 Model output varies between runs, so scenario assertions check server state (holds, dispatches, alerts, log), not wording.
+
+## How jobs share a driver (batching)
+
+A new job may join a driver who already has stops when the extra driving is small. **Routine** jobs always can. **Urgent** jobs can too, but only for food, water, shelter and power, and only if they still arrive within 20 minutes. **Critical** jobs and **medicine** always get the fastest driver. No driver carries more than 3 stops. The "miles saved" figure on the console counts the avoided separate round trip. The model labels most food requests "urgent", which is why urgent food is allowed to batch. To turn that off, change `mayBatch` in `server/dispatch.js`.
+
+## Safe defaults
+
+- The server binds to `127.0.0.1` and refuses to start on any other host without `ADMIN_TOKEN`.
+- The demo-only endpoints (resident list, answering the outbound "we call you" call) are **on for localhost and off on a network host**. Set `DEMO_MODE=1` to turn them on deliberately; they expose resident names and enrolled needs.
+- If the Bedrock Guardrail breaks, callers are still served without it, a critical alert is raised once, and it is retried after an hour. If AWS credentials expire, callers get a clear apology, the coordinator is alerted, and 911 guidance still works (it needs no AWS call).
+- Workshop credentials are temporary. Refresh them and restart the app before presenting.
 
 ## Known limits
 

@@ -40,5 +40,8 @@ scripts/                 scenarios (end-to-end), paths (failure paths), surge, b
 ## Verification
 
 - `npm run scenarios` runs eight end-to-end scenarios against a running server and the real model (insulin with approval and re-plan, food batching, red flag, info, no-invention, consent declined, Spanish, outbound), then checks that no reply across all of them contains a redaction placeholder.
-- `npm run test:paths` runs the failure-path checks (redaction, grounding, driver decline, approval rejection, no-alternative re-plan, TTL).
+- `npm run test:paths` runs the failure-path checks (redaction, grounding, 911-not-queued, driver decline, approval rejection, no-alternative re-plan, TTL, readable logs).
+- `npm run test:resilience` breaks AWS on purpose (bad Guardrail id, fake credentials) and checks the app degrades safely. Each case runs in its own process because config is read at start-up.
+- `npm run test:dispatch` checks driver choice and batching rules. `npm run test:voice` and `npm run test:voice:browser` cover the caller page's voice handling.
+- **When you change `server/dispatch.js`, run `npm run test:dispatch`.** Critical jobs and medicine must never be batched.
 - `ENABLE_TEST_API=1 RATE_LIMIT_PER_MIN=5000 npm start`, then `npm run surge`.

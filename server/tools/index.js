@@ -33,10 +33,12 @@ const SELF_LOGGING_OK = {
 function summarize(name, input, r) {
   switch (name) {
     case 'classify_need':
+      if (r.ok === false) return `classify_need was rejected: ${r.error}`;
       return r.action === 'ask_one_clarifying_question'
         ? `Asked clarifying question #${r.clarifying_questions_asked}`
         : `Classified need as ${r.classified_as}${input.item ? ` (${input.item})` : ''}, urgency ${input.urgency}`;
     case 'find_resource':
+      if (r.ok === false) return `find_resource could not run for ${input.resource_type ?? '?'}${input.item ? `/${input.item}` : ''}: ${r.error}`;
       return r.resource_type === 'info'
         ? `find_resource info "${input.topic ?? ''}": ${r.count} verified item(s)`
         : `find_resource ${r.resource_type}/${r.item}: ${r.count} site(s)${r.results?.[0] ? `, nearest ${r.results[0].name} (${r.results[0].distance_km} km)` : ''}`;

@@ -6,8 +6,9 @@ const MAX_BATCH = 3;
 const LOAD_MINUTES = 4;
 // Routine jobs may join a busy driver's run if the detour is within this multiple of a fresh trip.
 const BATCH_TOLERANCE = 1.25;
-// ...and must still arrive within this many minutes.
+// ...and must still arrive within this many minutes (routine, then urgent).
 const ROUTINE_MAX_ETA_MIN = 60;
+const URGENT_MAX_ETA_MIN = 20;
 
 function driverState(store, driver, excludeDispatchId) {
   const active = [...store.dispatches.values()]
@@ -49,7 +50,7 @@ function quote(store, driver, pickup, dropoff, excludeDispatchId) {
  * run when the detour is small (fewer vehicles on the road), otherwise nearest idle driver.
  * Returns { quote, savedKm, batched } or null when nobody is available.
  */
-export function chooseDriver(store, { pickup, dropoff, urgency, preferDriverId, excludeDriverIds = [], excludeDispatchId }) {
+export function chooseDriver(store, { pickup, dropoff, urgency, preferDriverId, excludeDriverIds = [], excludeDispatchId, isMedicine = false }) {
   const candidates = [...store.drivers.values()]
     .filter((d) => d.status !== 'offline' && !excludeDriverIds.includes(d.id))
     .map((d) => quote(store, d, pickup, dropoff, excludeDispatchId))
@@ -64,12 +65,19 @@ export function chooseDriver(store, { pickup, dropoff, urgency, preferDriverId, 
   let pick;
   if (preferDriverId) pick = candidates.find((q) => q.driver.id === preferDriverId);
 
-  if (!pick && (urgency === 'critical' || urgency === 'urgent')) {
+  // Who may share a run? Routine jobs always. Urgent jobs only for non-medicine needs (food, water,
+  // shelter, power), and only if they would still arrive within URGENT_MAX_ETA_MIN. Critical jobs and
+  // urgent medicine always get the fastest driver. The model labels most food requests "urgent", so
+  // without this the plan's "food gets added to the same driver's route" moment never happened.
+  const mayBatch = urgency === 'routine' || (urgency === 'urgent' && !isMedicine);
+  const maxEtaMin = urgency === 'routine' ? ROUTINE_MAX_ETA_MIN : URGENT_MAX_ETA_MIN;
+
+  if (!pick && !mayBatch) {
     pick = [...candidates].sort(byEta)[0];
   } else if (!pick) {
     const bestIdle = [...idle].sort(byVehicleKm)[0];
     const bestBusy = [...busy]
-      .filter((q) => (q.etaAt - Date.now()) / 60000 <= ROUTINE_MAX_ETA_MIN)
+      .filter((q) => (q.etaAt - Date.now()) / 60000 <= maxEtaMin)
       .sort(byVehicleKm)[0];
     // Batch whenever the extra driving is no worse than a fresh trip (with a small tolerance
     // for the longer wait), because it also keeps another vehicle off the road.
@@ -111,7 +119,8 @@ export function createDispatch(store, { session, hold, urgency, preferDriverId, 
   const site = store.sites.get(hold.siteId);
   const pickup = pickupFor(site);
   const dropoff = dropoffFor(store, session);
-  const choice = chooseDriver(store, { pickup, dropoff, urgency, preferDriverId, excludeDispatchId: reuseDispatchId });
+  const isMedicine = store.catalog[hold.item]?.type === 'medicine'; // from the data, not the model's label
+  const choice = chooseDriver(store, { pickup, dropoff, urgency, preferDriverId, excludeDispatchId: reuseDispatchId, isMedicine });
   if (!choice) return null;
   const { quote: q, savedKm, batched } = choice;
 
@@ -164,6 +173,7 @@ export function reassignAfterDecline(store, dispatch, session) {
     pickup: dispatch.pickup,
     dropoff: dispatch.dropoff,
     urgency: dispatch.urgency,
+    isMedicine: store.catalog[hold.item]?.type === 'medicine',
     excludeDriverIds: [declinedBy],
     excludeDispatchId: dispatch.id,
   });

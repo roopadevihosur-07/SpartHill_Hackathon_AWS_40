@@ -127,7 +127,9 @@ async function converse(args) {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const withGuardrail = guardrailActive();
-        const input = { modelId, ...args };
+        // The messages may already carry guardContent wrappers from scopeForGuardrail(). Those are
+        // only valid while a Guardrail is attached, so when it has just been switched off, unwrap.
+        const input = { modelId, ...args, messages: withGuardrail ? args.messages : unwrapGuardContent(args.messages) };
         if (withGuardrail) input.guardrailConfig = { guardrailIdentifier: config.guardrailId, guardrailVersion: config.guardrailVersion, trace: 'enabled' };
         const res = await client.send(new ConverseCommand(input), { abortSignal: AbortSignal.timeout(config.bedrockTimeoutMs) });
         res.modelUsed = modelId;
@@ -152,6 +154,17 @@ async function converse(args) {
     }
   }
   throw lastErr;
+}
+
+/** Turn guardContent blocks back into plain text blocks (the marker-only ones are dropped). */
+export function unwrapGuardContent(messages) {
+  return messages.map((m) => {
+    if (!m.content?.some((c) => c.guardContent)) return m;
+    const content = m.content
+      .map((c) => (c.guardContent ? { text: c.guardContent.text?.text ?? '' } : c))
+      .filter((c, i, all) => c.text === undefined || !(c.text === 'Server step. Nothing new from the caller.') || all.length === 1);
+    return { ...m, content };
+  });
 }
 
 /**

@@ -49,6 +49,8 @@ Status reflects what exists in this repo and how it was verified. "Verified" mea
   - [x] 9.3 `server/telemetry.js`: redacted decision log and 12 custom metrics to CloudWatch
   - [x] 9.4 "AWS footprint" panel on the console with live status and links
   - [x] 9.5 Fixes found while testing: 911 guidance no longer waits behind a slow turn; assistant lines no longer rewritten to "this is [NAME]"; Guardrail address filter removed because it replaced neighbourhood names
+  - [x] 9.6 Audit fixes (verified by `test:resilience`, `test:dispatch`): Guardrail fail-open now works on the first message; demo endpoints off by default on a network host; urgent non-medicine jobs can batch; failed tool calls are logged readably
+  - [x] 9.7 Voice: no doubled words, no answering Lifeline's own voice, female voice picker (verified in a real Chrome with a fake microphone; real speakers untested)
 
 ## Not done / needs a human
 
