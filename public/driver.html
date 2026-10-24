@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#232F3E">
+  <title>Lifeline: Volunteer driver</title>
+  <link rel="icon" type="image/svg+xml" href="/img/logo.svg">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/driver.html"><img src="/img/logo.svg" alt="" width="28" height="28"><span>Lifeline</span><span class="brand-sub">Driver</span></a>
+    <div class="nav-right"><span class="badge demo">Demo data</span></div>
+  </header>
+  <main class="wrap">
+    <div id="gate-mount"></div>
+    <div id="app" class="hidden">
+      <div class="card">
+        <label for="who">I am</label>
+        <select id="who"></select>
+        <p id="conn" class="small muted" role="status"></p>
+      </div>
+      <div id="jobs" aria-live="polite"></div>
+    </div>
+  </main>
+  <footer class="foot">Powered by Amazon Bedrock · Demo data is simulated</footer>
+  <script type="module" src="/js/driver.js"></script>
+</body>
+</html>

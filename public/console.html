@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#232F3E">
+  <title>Lifeline: Coordinator console</title>
+  <link rel="icon" type="image/svg+xml" href="/img/logo.svg">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="console">
+  <div id="gate-mount"></div>
+  <div id="app" class="hidden">
+    <header class="nav">
+      <a class="brand" href="/console.html"><img src="/img/logo.svg" alt="" width="28" height="28"><span>Lifeline</span><span class="brand-sub">Coordinator</span></a>
+      <span id="conn" class="badge off">connecting</span>
+      <div class="nav-right">
+        <label class="switch"><input id="approval-toggle" type="checkbox"> Require approval for medicine holds</label>
+        <label class="switch"><input id="debug-toggle" type="checkbox"> Debug log</label>
+      </div>
+    </header>
+    <section class="kpi-strip" id="kpis" aria-label="Key numbers"></section>
+
+    <main class="grid">
+      <section aria-label="Needs your attention">
+        <div class="panel"><h2>Approvals needed</h2><div id="approvals"></div></div>
+        <div class="panel"><h2>Alerts</h2><div id="alerts" aria-live="polite"></div></div>
+        <div class="panel"><h2>Live calls</h2><div id="calls"></div></div>
+        <div class="panel">
+          <h2>Outbound call <span class="small muted">"we call you"</span></h2>
+          <p class="small muted">Rings an opted-in resident whose caller page is open. On that page, choose the resident under "Demo".</p>
+          <div class="row">
+            <select id="resident" aria-label="Resident to call"></select>
+            <button id="call-btn" class="btn primary" type="button">Call resident</button>
+          </div>
+          <p id="call-note" class="small" role="status"></p>
+        </div>
+      </section>
+
+      <section aria-label="Operations">
+        <div class="panel"><h2>Holds <span class="small muted">"Out of stock" triggers a re-plan</span></h2><div id="holds"></div></div>
+        <div class="panel"><h2>Drivers and dispatches</h2><div id="dispatches"></div></div>
+        <div class="panel"><h2>Sites and stock <span class="badge demo">Simulated</span></h2><div id="sites"></div></div>
+      </section>
+
+      <section aria-label="Record">
+        <div class="panel aws"><h2>AWS footprint <span id="aws-badge" class="badge off">checking</span></h2><div id="aws"></div></div>
+        <div class="panel"><h2>Decision log <span class="small muted" id="log-count"></span></h2><div id="log" class="log" tabindex="0" role="log" aria-label="Decision log"></div></div>
+        <div class="panel"><h2>Surge test</h2><div id="surge"></div></div>
+        <div class="panel"><button id="reset" class="btn danger small" type="button">Reset demo data</button></div>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="/js/console.js"></script>
+</body>
+</html>

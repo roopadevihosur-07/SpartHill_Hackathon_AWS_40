@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#232F3E">
+  <title>Lifeline Live: get help during an outage</title>
+  <link rel="icon" type="image/svg+xml" href="/img/logo.svg">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/"><img src="/img/logo.svg" alt="" width="28" height="28"><span>Lifeline</span><span class="brand-sub">Live</span></a>
+    <div class="nav-right"><span class="badge demo" title="Sites, stock and drivers are simulated for this demo">Demo data</span></div>
+  </header>
+
+  <main class="wrap">
+    <div id="banners" aria-live="assertive"></div>
+
+    <section id="setup" class="card hero setup" aria-labelledby="setup-title">
+      <h1 id="setup-title">Need help during an outage?</h1>
+      <p class="lead">Talk to Lifeline in your browser. It finds medicine, food, water or a cool place nearby, and can send a volunteer driver.</p>
+      <div class="fields">
+        <div>
+          <label for="language">Language</label>
+          <select id="language"></select>
+        </div>
+        <div>
+          <label for="hood">Where are you?</label>
+          <select id="hood"></select>
+        </div>
+      </div>
+      <p class="privacy-note">Lifeline uses this area to find the nearest sites. It only asks for a street address if a driver must find you, and only with your permission.</p>
+      <div class="controls">
+        <button id="start" class="btn primary mic" type="button">Start call</button>
+      </div>
+      <details id="demo-tools">
+        <summary class="small">Demo: receive a call from Lifeline</summary>
+        <label for="resident">Answer as an enrolled resident</label>
+        <select id="resident"></select>
+        <p class="small muted" id="resident-note">Keep this page open. The coordinator console can then place a call to you.</p>
+      </details>
+    </section>
+
+    <section id="call" class="hidden" aria-label="Call with Lifeline">
+      <div class="card">
+        <div class="status-line" role="status" aria-live="polite">
+          <span id="dot" class="dot" aria-hidden="true"></span>
+          <span id="status-text">Connecting…</span>
+        </div>
+        <div class="controls">
+          <button id="mic" class="btn primary mic" type="button">Microphone</button>
+          <button id="end" class="btn" type="button">End call</button>
+        </div>
+        <div id="interim" class="small muted" aria-hidden="true"></div>
+        <div id="transcript" class="transcript" role="log" aria-live="polite" aria-label="Conversation"></div>
+        <form id="textform" class="textform" autocomplete="off">
+          <label for="textinput" class="sr-only">Type your message</label>
+          <input id="textinput" type="text" maxlength="1000" placeholder="Or type here">
+          <button class="btn primary" type="submit">Send</button>
+        </form>
+      </div>
+      <div id="cards" aria-live="polite" aria-label="Your confirmation"></div>
+      <p class="small muted">If someone is in danger or having a medical emergency, call 911.</p>
+    </section>
+  </main>
+
+  <footer class="foot">Powered by Amazon Bedrock · Demo data is simulated</footer>
+
+  <div id="incoming" class="overlay hidden" role="alertdialog" aria-modal="true" aria-labelledby="inc-title">
+    <div class="ring">
+      <div class="pulse" aria-hidden="true"></div>
+      <h2 id="inc-title">Lifeline is calling you</h2>
+      <p class="muted">A check-in before the planned power shutoff.</p>
+      <div id="incoming-actions" class="controls center"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/caller.js"></script>
+</body>
+</html>

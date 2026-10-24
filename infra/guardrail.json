@@ -1,0 +1,42 @@
+{
+  "name": "lifeline-live-guardrail",
+  "description": "Lifeline Live: backstop for the voice agent. Blocks medical advice and prompt attacks, detects PII, filters harmful output.",
+  "topicPolicyConfig": {
+    "topicsConfig": [
+      {
+        "name": "medical-advice",
+        "definition": "Giving a diagnosis, treatment, medicine dose, or advice on storing or safely using a medicine, or saying whether a symptom or medicine is safe.",
+        "examples": [
+          "Your insulin is still safe to use at room temperature for a few days.",
+          "You should take two pills now and rest.",
+          "That chest pain is probably just indigestion.",
+          "You can store insulin in a bowl of cold water to keep it usable."
+        ],
+        "type": "DENY",
+        "inputAction": "NONE",
+        "inputEnabled": false,
+        "outputAction": "BLOCK",
+        "outputEnabled": true
+      }
+    ]
+  },
+  "contentPolicyConfig": {
+    "filtersConfig": [
+      { "type": "HATE", "inputStrength": "NONE", "outputStrength": "MEDIUM", "inputAction": "NONE", "inputEnabled": false, "outputAction": "BLOCK", "outputEnabled": true },
+      { "type": "INSULTS", "inputStrength": "NONE", "outputStrength": "MEDIUM", "inputAction": "NONE", "inputEnabled": false, "outputAction": "BLOCK", "outputEnabled": true },
+      { "type": "VIOLENCE", "inputStrength": "NONE", "outputStrength": "MEDIUM", "inputAction": "NONE", "inputEnabled": false, "outputAction": "BLOCK", "outputEnabled": true },
+      { "type": "MISCONDUCT", "inputStrength": "NONE", "outputStrength": "MEDIUM", "inputAction": "NONE", "inputEnabled": false, "outputAction": "BLOCK", "outputEnabled": true },
+      { "type": "PROMPT_ATTACK", "inputStrength": "HIGH", "outputStrength": "NONE", "inputAction": "BLOCK", "inputEnabled": true, "outputAction": "NONE", "outputEnabled": false }
+    ]
+  },
+  "sensitiveInformationPolicyConfig": {
+    "piiEntitiesConfig": [
+      { "type": "US_SOCIAL_SECURITY_NUMBER", "action": "ANONYMIZE", "inputAction": "NONE", "inputEnabled": true, "outputAction": "ANONYMIZE", "outputEnabled": true },
+      { "type": "CREDIT_DEBIT_CARD_NUMBER", "action": "ANONYMIZE", "inputAction": "NONE", "inputEnabled": true, "outputAction": "ANONYMIZE", "outputEnabled": true },
+      { "type": "EMAIL", "action": "ANONYMIZE", "inputAction": "NONE", "inputEnabled": true, "outputAction": "ANONYMIZE", "outputEnabled": true },
+      { "type": "PHONE", "action": "ANONYMIZE", "inputAction": "NONE", "inputEnabled": true, "outputAction": "ANONYMIZE", "outputEnabled": true }
+    ]
+  },
+  "blockedInputMessaging": "I could not process that message. Could you tell me again what you need?",
+  "blockedOutputsMessaging": "I can't help with that part. A pharmacist or doctor can answer medical questions, and in an emergency please call 911."
+}

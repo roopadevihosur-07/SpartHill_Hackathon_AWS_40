@@ -1,0 +1,24 @@
+{
+  "name": "lifeline-live",
+  "version": "1.0.0",
+  "description": "Browser-based AI crisis-response agent (Amazon Bedrock tool use) for SpartHill Hacks 2026",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server/index.js",
+    "dev": "node --watch --env-file-if-exists=.env server/index.js",
+    "scenarios": "node --env-file-if-exists=.env scripts/scenarios.mjs",
+    "test:paths": "node --env-file-if-exists=.env scripts/paths.mjs",
+    "bench": "node --env-file-if-exists=.env scripts/bench-models.mjs",
+    "surge": "node --env-file-if-exists=.env scripts/surge.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1156.0",
+    "@aws-sdk/client-cloudwatch": "^3.1156.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.1156.0",
+    "express": "^5.3.0"
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "_note": "SIMULATED DEMO DATA. Business names, addresses, stock levels, volunteers and residents are fictional. In a real pilot, partner pharmacies and food banks would push stock to this API during emergencies.",
+  "neighborhoods": {
+    "east_san_jose": { "label": "East San José", "lat": 37.3527, "lng": -121.826 },
+    "alum_rock": { "label": "Alum Rock", "lat": 37.368, "lng": -121.824 },
+    "mayfair": { "label": "Mayfair", "lat": 37.3435, "lng": -121.8265 },
+    "evergreen": { "label": "Evergreen", "lat": 37.314, "lng": -121.798 }
+  },
+  "catalog": {
+    "insulin": {
+      "label": "insulin", "type": "medicine", "coldChain": true,
+      "aliases": ["insulin", "lantus", "humalog", "novolog", "glargine", "lispro", "levemir", "basaglar", "toujeo", "tresiba", "aspart", "humulin", "novolin"]
+    },
+    "blood_pressure_meds": {
+      "label": "blood pressure medication", "type": "medicine", "coldChain": false,
+      "aliases": ["blood pressure", "lisinopril", "amlodipine", "losartan", "metoprolol", "hydrochlorothiazide", "hypertension"]
+    },
+    "inhaler": {
+      "label": "rescue inhaler", "type": "medicine", "coldChain": false,
+      "aliases": ["inhaler", "albuterol", "ventolin", "proair", "asthma"]
+    },
+    "food_box": { "label": "food box", "type": "food", "coldChain": false, "aliases": ["food", "groceries", "meal", "box"] },
+    "baby_formula": { "label": "baby formula", "type": "food", "coldChain": false, "aliases": ["formula", "baby", "infant"] },
+    "diabetic_safe_box": { "label": "diabetic-safe food box", "type": "food", "coldChain": false, "aliases": ["diabetic", "low sugar", "sugar free"] },
+    "water_case": { "label": "case of bottled water", "type": "water", "coldChain": false, "aliases": ["water", "bottled water", "drinking water"] },
+    "cooling_spot": { "label": "cooling-center spot", "type": "shelter", "coldChain": false, "aliases": ["cooling", "shelter", "ac", "air conditioning", "heat"] },
+    "charging_station": { "label": "medical-device charging station", "type": "power", "coldChain": false, "aliases": ["charging", "charge", "oxygen", "concentrator", "cpap", "battery", "power"] }
+  },
+  "defaultItems": {
+    "food": "food_box",
+    "water": "water_case",
+    "shelter": "cooling_spot",
+    "power": "charging_station"
+  },
+  "sites": [
+    {
+      "id": "p1", "kind": "pharmacy", "name": "Eastside Family Pharmacy", "address": "2200 Story Rd (demo)",
+      "lat": 37.3512, "lng": -121.8199, "open": true, "hasPower": true, "refrigerated": true, "hours": "Open until 9 PM tonight",
+      "inventory": { "insulin": 6, "blood_pressure_meds": 12, "inhaler": 4 }
+    },
+    {
+      "id": "p2", "kind": "pharmacy", "name": "Alum Rock Community Pharmacy", "address": "1480 Alum Rock Ave (demo)",
+      "lat": 37.3633, "lng": -121.8268, "open": true, "hasPower": true, "refrigerated": true, "hours": "Open until 8 PM tonight",
+      "inventory": { "insulin": 3, "blood_pressure_meds": 8, "inhaler": 0 }
+    },
+    {
+      "id": "p3", "kind": "pharmacy", "name": "King and McKee Pharmacy", "address": "1010 King Rd (demo)",
+      "lat": 37.3466, "lng": -121.8312, "open": true, "hasPower": true, "refrigerated": true, "hours": "Open until 10 PM tonight",
+      "inventory": { "insulin": 4, "blood_pressure_meds": 5, "inhaler": 2 }
+    },
+    {
+      "id": "p4", "kind": "pharmacy", "name": "Capitol Avenue Pharmacy", "address": "3300 Capitol Ave (demo)",
+      "lat": 37.359, "lng": -121.848, "open": false, "hasPower": false, "refrigerated": true, "hours": "Closed: no power",
+      "inventory": { "insulin": 9, "blood_pressure_meds": 20, "inhaler": 6 }
+    },
+    {
+      "id": "p5", "kind": "pharmacy", "name": "Evergreen Valley Pharmacy", "address": "4100 Yerba Buena Rd (demo)",
+      "lat": 37.312, "lng": -121.799, "open": true, "hasPower": true, "refrigerated": true, "hours": "Open until 9 PM tonight",
+      "inventory": { "insulin": 5, "blood_pressure_meds": 10, "inhaler": 3 }
+    },
+    {
+      "id": "f1", "kind": "food_bank", "name": "East San José Community Pantry", "address": "900 McKee Rd (demo)",
+      "lat": 37.356, "lng": -121.833, "open": true, "hasPower": true, "refrigerated": false, "hours": "Open until 7 PM tonight",
+      "inventory": { "food_box": 20, "baby_formula": 6, "diabetic_safe_box": 4, "water_case": 10 }
+    },
+    {
+      "id": "f2", "kind": "food_bank", "name": "Mayfair Food Hub", "address": "600 Kirk Ave (demo)",
+      "lat": 37.343, "lng": -121.828, "open": true, "hasPower": true, "refrigerated": false, "hours": "Open until 6 PM tonight",
+      "inventory": { "food_box": 15, "baby_formula": 0, "diabetic_safe_box": 0, "water_case": 8 }
+    },
+    {
+      "id": "f3", "kind": "food_bank", "name": "Alum Rock Food Bank", "address": "2500 Alum Rock Ave (demo)",
+      "lat": 37.37, "lng": -121.818, "open": true, "hasPower": true, "refrigerated": false, "hours": "Open until 8 PM tonight",
+      "inventory": { "food_box": 12, "baby_formula": 3, "diabetic_safe_box": 2, "water_case": 12 }
+    },
+    {
+      "id": "c1", "kind": "cooling_center", "name": "10th Street Community Center", "address": "10th Street, San José (demo)",
+      "lat": 37.349, "lng": -121.848, "open": true, "hasPower": true, "refrigerated": false, "hours": "Open until 10 PM tonight",
+      "inventory": { "cooling_spot": 40, "charging_station": 6, "water_case": 20 }
+    },
+    {
+      "id": "c2", "kind": "cooling_center", "name": "Mayfair Community Center", "address": "2039 Kammerer Ave (demo)",
+      "lat": 37.3445, "lng": -121.823, "open": true, "hasPower": true, "refrigerated": false, "hours": "Open until 9 PM tonight",
+      "inventory": { "cooling_spot": 25, "charging_station": 4, "water_case": 10 }
+    }
+  ],
+  "volunteers": [
+    { "id": "v1", "name": "Maria Lopez", "vehicle": "Blue Honda Civic", "phone": "+1-555-0141", "lat": 37.35, "lng": -121.835 },
+    { "id": "v2", "name": "Dev Patel", "vehicle": "White Toyota Sienna", "phone": "+1-555-0142", "lat": 37.36, "lng": -121.82 },
+    { "id": "v3", "name": "Ana Tran", "vehicle": "Gray Subaru Outback", "phone": "+1-555-0143", "lat": 37.34, "lng": -121.83 },
+    { "id": "v4", "name": "Sam Okafor", "vehicle": "Red Ford Ranger", "phone": "+1-555-0144", "lat": 37.37, "lng": -121.83 }
+  ],
+  "residents": [
+    {
+      "id": "r1", "name": "Tuan Nguyen", "displayName": "Mr. Nguyen", "language": "en", "neighborhood": "east_san_jose",
+      "phone": "+1-555-0101", "address": "1450 Demo Ave, San José (demo)",
+      "enrolledNeeds": ["insulin (refrigerated)"], "consentOnFile": "Address consent recorded at enrollment on 2026-09-12"
+    },
+    {
+      "id": "r2", "name": "Elena Ruiz", "displayName": "Ms. Ruiz", "language": "es", "neighborhood": "mayfair",
+      "phone": "+1-555-0102", "address": "77 Sample St, San José (demo)",
+      "enrolledNeeds": ["blood pressure medication"], "consentOnFile": "Address consent recorded at enrollment on 2026-09-14"
+    },
+    {
+      "id": "r3", "name": "Walter Hall", "displayName": "Mr. Hall", "language": "en", "neighborhood": "alum_rock",
+      "phone": "+1-555-0103", "address": "310 Example Ct, San José (demo)",
+      "enrolledNeeds": ["oxygen concentrator (needs power)"], "consentOnFile": "Address consent recorded at enrollment on 2026-09-20"
+    }
+  ],
+  "bulletins": [
+    {
+      "id": "b1", "topic": "power_restoration", "keywords": ["power", "electricity", "restore", "restoration", "back on", "outage"],
+      "text": "The utility estimates power will be restored to East San José by 6 AM Saturday. The estimate may change.",
+      "source": "Demo data: simulated utility notice", "updated": "Fri 6:40 PM"
+    },
+    {
+      "id": "b2", "topic": "road_closures", "keywords": ["road", "closed", "closure", "street", "traffic", "route", "story"],
+      "text": "Story Road is closed between King Road and McKee Road because of downed lines. Use Capitol Avenue instead.",
+      "source": "Demo data: simulated city notice", "updated": "Fri 6:15 PM"
+    },
+    {
+      "id": "b3", "topic": "shutoff_schedule", "keywords": ["shutoff", "shut off", "planned", "schedule", "tonight", "psps"],
+      "text": "A planned safety power shutoff for East San José begins at 8 PM tonight.",
+      "source": "Demo data: simulated utility notice", "updated": "Fri 5:30 PM"
+    },
+    {
+      "id": "b4", "topic": "water_advisory", "keywords": ["water", "tap", "brown", "boil", "drinking", "safe"],
+      "text": "A boil-water advisory is in effect for East San José until further notice. Use bottled water for drinking and cooking.",
+      "source": "Demo data: simulated water district notice", "updated": "Fri 4:50 PM"
+    },
+    {
+      "id": "b5", "topic": "heat_advisory", "keywords": ["heat", "hot", "temperature", "104", "warm", "advisory"],
+      "text": "A heat advisory is in effect tomorrow with a forecast high of 104 degrees Fahrenheit. Cooling centers will stay open.",
+      "source": "Demo data: simulated weather service notice", "updated": "Fri 3:00 PM"
+    }
+  ]
+}

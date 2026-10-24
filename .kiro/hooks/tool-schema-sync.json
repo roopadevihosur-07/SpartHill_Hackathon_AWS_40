@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Keep tool schema, implementation and prompt in sync",
+      "trigger": "PostFileSave",
+      "description": "When the agent's tool contract changes, make sure the implementation, the system prompt and the tests still agree.",
+      "matcher": "server/tools/schemas\\.js$",
+      "action": {
+        "type": "agent",
+        "prompt": "server/tools/schemas.js (the tool contract between the Bedrock agent and the tool layer) was just saved. Check that every tool whose input or description changed still matches its implementation in server/tools/*.js and the instructions in BASE_PROMPT in server/agent.js. List any mismatch and fix it. Then tell the user to run `npm run test:paths` and `npm run scenarios`. Do not change unrelated files."
+      }
+    }
+  ]
+}
