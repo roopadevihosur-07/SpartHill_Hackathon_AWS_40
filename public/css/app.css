@@ -204,3 +204,12 @@ a.btn { text-decoration: none; }
 .route li::before { content: ''; position: absolute; left: -7px; top: 0.55rem; width: 12px; height: 12px; border-radius: 50%; background: var(--ink); border: 2px solid #fff; box-shadow: 0 0 0 1px var(--line); }
 .route li.start::before { background: #aab7b8; }
 .route li.dropoff::before { background: var(--ok); }
+
+/* Driver page uses the full screen width; job cards flow into columns. */
+.driver-page .wrap { max-width: none; padding: 1.5rem clamp(1.25rem, 4vw, 4rem) 2rem; }
+.driver-page #jobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem; align-items: start; }
+.driver-page #jobs > .card { margin-bottom: 0; }
+.driver-page #jobs > .card:not(.dcard) { grid-column: 1 / -1; }
+
+/* Caller page uses the full screen width. */
+.caller-page .wrap { max-width: none; padding: 1.5rem clamp(1.25rem, 4vw, 4rem) 2rem; }

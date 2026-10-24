@@ -18,7 +18,8 @@ npm start
 
 | Page | URL | For |
 |---|---|---|
-| Caller | http://127.0.0.1:3000/ | the person asking for help |
+| Landing | http://127.0.0.1:3000/ | project overview, architecture, AWS, use cases. Its "Start application" button opens the caller page |
+| Caller | http://127.0.0.1:3000/caller.html | the person asking for help |
 | Coordinator console | http://127.0.0.1:3000/console.html | Rosa |
 | Driver | http://127.0.0.1:3000/driver.html | volunteer drivers |
 

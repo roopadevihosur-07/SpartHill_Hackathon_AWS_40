@@ -4,78 +4,337 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#232F3E">
-  <title>Lifeline Live: get help during an outage</title>
+  <meta name="description" content="Lifeline Live: a browser-based AI agent that helps people during outages and disasters, built on Amazon Bedrock.">
+  <title>Lifeline Live: AI help during outages</title>
   <link rel="icon" type="image/svg+xml" href="/img/logo.svg">
   <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/landing.css">
 </head>
-<body>
+<body class="landing">
   <header class="nav">
     <a class="brand" href="/"><img src="/img/logo.svg" alt="" width="28" height="28"><span>Lifeline</span><span class="brand-sub">Live</span></a>
-    <div class="nav-right"><span class="badge demo" title="Sites, stock and drivers are simulated for this demo">Demo data</span></div>
+    <nav class="nav-links" aria-label="Page sections">
+      <a href="#why">Why it matters</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#aws">AWS</a>
+      <a href="#story">Story</a>
+      <a href="#use-cases">Use cases</a>
+    </nav>
+    <div class="nav-right">
+      <a class="btn primary small" href="/caller.html">Start application</a>
+    </div>
   </header>
 
-  <main class="wrap">
-    <div id="banners" aria-live="assertive"></div>
+  <main>
+    <!-- Hero -->
+    <section class="hero" aria-labelledby="title" id="hero">
+      <div class="hero-bg" aria-hidden="true"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span><span class="grid-lines"></span></div>
+      <div class="hero-split">
+      <div class="hero-inner">
+        <p class="eyebrow">SpartHill Hacks 2026 · AWS AI/ML track</p>
+        <h1 id="title">Lifeline <span class="accent">Live</span></h1>
+        <p class="tagline">Help that answers the phone when the power is out.</p>
+        <p class="lead">Speak or type. Lifeline finds medicine, food, water or shelter nearby and sends a driver. A human approves the risky steps.</p>
+        <div class="cta-row">
+          <a class="btn primary big" href="/caller.html">Start application</a>
+          <a class="btn big" href="#architecture">How it works</a>
+        </div>
+        <ul class="hero-facts" aria-label="Key facts">
+          <li><b>Amazon Bedrock</b> runs the agent</li>
+          <li><b>Human approval</b> for medicine</li>
+          <li><b>911 first</b> on a red flag</li>
+        </ul>
+      </div>
 
-    <section id="setup" class="card hero setup" aria-labelledby="setup-title">
-      <h1 id="setup-title">Need help during an outage?</h1>
-      <p class="lead">Talk to Lifeline in your browser. It finds medicine, food, water or a cool place nearby, and can send a volunteer driver.</p>
-      <div class="fields">
-        <div>
-          <label for="language">Language</label>
-          <select id="language"></select>
-        </div>
-        <div>
-          <label for="hood">Where are you?</label>
-          <select id="hood"></select>
+      <div class="phone-wrap" aria-hidden="true">
+        <div class="phone">
+          <div class="phone-top"><span class="live-dot"></span> Live call · English · East San José</div>
+          <div class="bubble-in b1">My insulin is getting warm, the power is out and I have no car.</div>
+          <div class="bubble-out b2">Let's keep your insulin cold. Checking pharmacies with power nearby.</div>
+          <div class="chip b3">Red-flag check: none</div>
+          <div class="chip warn b4">Approval needed · Coordinator</div>
+          <div class="chip ok b5">Driver dispatched · ETA 9 min</div>
+          <svg class="heartbeat" viewBox="0 0 300 40" preserveAspectRatio="none"><path d="M0 20 H90 L105 6 L120 34 L135 12 L150 20 H300"/></svg>
         </div>
       </div>
-      <p class="privacy-note">Lifeline uses this area to find the nearest sites. It only asks for a street address if a driver must find you, and only with your permission.</p>
-      <div class="controls">
-        <button id="start" class="btn primary mic" type="button">Start call</button>
       </div>
-      <details id="demo-tools">
-        <summary class="small">Demo: receive a call from Lifeline</summary>
-        <label for="resident">Answer as an enrolled resident</label>
-        <select id="resident"></select>
-        <p class="small muted" id="resident-note">Keep this page open. The coordinator console can then place a call to you.</p>
-      </details>
     </section>
 
-    <section id="call" class="hidden" aria-label="Call with Lifeline">
-      <div class="card">
-        <div class="status-line" role="status" aria-live="polite">
-          <span id="dot" class="dot" aria-hidden="true"></span>
-          <span id="status-text">Connecting…</span>
-        </div>
-        <div class="controls">
-          <button id="mic" class="btn primary mic" type="button">Microphone</button>
-          <button id="end" class="btn" type="button">End call</button>
-        </div>
-        <div id="interim" class="small muted" aria-hidden="true"></div>
-        <div id="transcript" class="transcript" role="log" aria-live="polite" aria-label="Conversation"></div>
-        <form id="textform" class="textform" autocomplete="off">
-          <label for="textinput" class="sr-only">Type your message</label>
-          <input id="textinput" type="text" maxlength="1000" placeholder="Or type here">
-          <button class="btn primary" type="submit">Send</button>
-        </form>
+    <!-- Stats -->
+    <section class="stats" aria-label="Measured results">
+      <div class="stat"><b data-count="200">200</b><span>concurrent callers, 0 faults</span></div>
+      <div class="stat"><b data-count="43">43</b><span>automated checks</span></div>
+      <div class="stat"><b data-count="6" data-suffix=" ms">6 ms</b><span>for 911 guidance to reach the caller</span></div>
+      <div class="stat"><b data-count="5" data-suffix=" s">5 s</b><span>median caller turn</span></div>
+      <p class="stats-note">Measured on a laptop with Nova Pro (see README). Your numbers will differ.</p>
+    </section>
+
+    <!-- Overview -->
+    <section class="section" id="overview" aria-labelledby="overview-title">
+      <h2 id="overview-title">What it is</h2>
+      <div class="cards three">
+        <article class="card-tile">
+          <span class="num">01</span>
+          <h3>Caller</h3>
+          <p>Speak or type. Get a confirmation.</p>
+        </article>
+        <article class="card-tile">
+          <span class="num">02</span>
+          <h3>Coordinator</h3>
+          <p>Approve risky steps. Re-plan live.</p>
+        </article>
+        <article class="card-tile">
+          <span class="num">03</span>
+          <h3>Volunteer driver</h3>
+          <p>Live route. Drop-offs in order.</p>
+        </article>
       </div>
-      <div id="cards" aria-live="polite" aria-label="Your confirmation"></div>
-      <p class="small muted">If someone is in danger or having a medical emergency, call 911.</p>
+      <p class="note">Sites and stock are simulated. Live: openFDA shortages and RxNorm names.</p>
+    </section>
+
+    <!-- Why it matters -->
+    <section class="section" id="why" aria-labelledby="why-title">
+      <h2 id="why-title">Why it matters</h2>
+      <p class="section-lead">Outages knock out phones, shops and transport at the same time.</p>
+      <div class="cards four">
+        <article class="card-tile">
+          <h3>Medicine spoils</h3>
+          <p>Insulin needs cold storage. We find sites with power.</p>
+        </article>
+        <article class="card-tile">
+          <h3>No transport</h3>
+          <p>A driver comes to people who cannot travel.</p>
+        </article>
+        <article class="card-tile">
+          <h3>Info changes hourly</h3>
+          <p>Answers come from the live site list.</p>
+        </article>
+        <article class="card-tile">
+          <h3>Too few coordinators</h3>
+          <p>The agent handles intake. People approve risks.</p>
+        </article>
+      </div>
+
+      <div class="compare" aria-label="Before and after Lifeline">
+        <div class="side bad">
+          <h3>Without Lifeline</h3>
+          <ul>
+            <li>Long call queues</li>
+            <li>No way to check what is open</li>
+            <li>Paper lists out of date by lunchtime</li>
+          </ul>
+        </div>
+        <div class="side good">
+          <h3>With Lifeline</h3>
+          <ul>
+            <li>An answer in seconds</li>
+            <li>Stock checked live</li>
+            <li>Routes update automatically</li>
+          </ul>
+        </div>
+      </div>
+      <p class="note">Hackathon prototype. Not a replacement for 911.</p>
+    </section>
+
+    <!-- Architecture -->
+    <section class="section alt" id="architecture" aria-labelledby="arch-title">
+      <h2 id="arch-title">Project architecture</h2>
+      <p class="section-lead">Click a box to see its role.</p>
+
+      <div class="arch" id="arch" role="group" aria-label="Architecture diagram">
+        <div class="arch-col">
+          <p class="col-label">People</p>
+          <button class="node" type="button" data-node="caller" aria-pressed="false">
+            <span class="node-title">Caller</span><span class="node-sub">voice or text</span>
+          </button>
+          <button class="node" type="button" data-node="driver" aria-pressed="false">
+            <span class="node-title">Volunteer driver</span><span class="node-sub">route and drop-offs</span>
+          </button>
+          <button class="node" type="button" data-node="coord" aria-pressed="false">
+            <span class="node-title">Coordinator</span><span class="node-sub">approvals and re-plans</span>
+          </button>
+        </div>
+
+        <div class="arch-col">
+          <p class="col-label">Lifeline server (Node)</p>
+          <button class="node wide" type="button" data-node="agent" aria-pressed="false">
+            <span class="node-title">Agent loop</span><span class="node-sub">Converse API with tools</span>
+          </button>
+          <button class="node wide" type="button" data-node="safety" aria-pressed="false">
+            <span class="node-title">Safety layer</span><span class="node-sub">red flags, PII redaction</span>
+          </button>
+          <button class="node wide" type="button" data-node="tools" aria-pressed="false">
+            <span class="node-title">Tools</span><span class="node-sub">sites, stock, dispatch, holds</span>
+          </button>
+          <button class="node wide" type="button" data-node="data" aria-pressed="false">
+            <span class="node-title">Live data</span><span class="node-sub">openFDA, RxNorm</span>
+          </button>
+        </div>
+
+        <div class="arch-col">
+          <p class="col-label">Amazon Web Services</p>
+          <button class="node" type="button" data-node="bedrock" aria-pressed="false">
+            <span class="node-title">Amazon Bedrock</span><span class="node-sub">Nova Pro, us-east-1</span>
+          </button>
+          <button class="node" type="button" data-node="guardrail" aria-pressed="false">
+            <span class="node-title">Bedrock Guardrail</span><span class="node-sub">blocks advice and attacks</span>
+          </button>
+          <button class="node" type="button" data-node="cloudwatch" aria-pressed="false">
+            <span class="node-title">CloudWatch</span><span class="node-sub">logs and dashboard</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="detail" id="arch-detail" aria-live="polite">
+        <h3 id="detail-title">Pick a box</h3>
+        <p id="detail-body" class="muted">Each part is explained here.</p>
+      </div>
+
+      <div class="pipeline" aria-label="Request flow">
+        <span class="step">Speak</span>
+        <span class="arrow" aria-hidden="true">→</span>
+        <span class="step">Safety</span>
+        <span class="arrow" aria-hidden="true">→</span>
+        <span class="step">Pick tools</span>
+        <span class="arrow" aria-hidden="true">→</span>
+        <span class="step">Run tools</span>
+        <span class="arrow" aria-hidden="true">→</span>
+        <span class="step">Confirm</span>
+      </div>
+    </section>
+
+    <!-- AWS -->
+    <section class="section" id="aws" aria-labelledby="aws-title">
+      <h2 id="aws-title">AWS integration</h2>
+      <p class="section-lead">Every model call and decision is logged in your AWS account.</p>
+      <div class="table-wrap">
+        <table class="aws-table">
+          <thead>
+            <tr><th scope="col">Service</th><th scope="col">Role</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Amazon Bedrock</td><td>Runs the agent (Converse API, tool use)</td></tr>
+            <tr><td>Bedrock Guardrail</td><td>Checks every call for advice, attacks and PII</td></tr>
+            <tr><td>Invocation logging</td><td>Records each model call</td></tr>
+            <tr><td>CloudWatch</td><td>Decision log, metrics and dashboard</td></tr>
+            <tr><td>IAM</td><td>Least-privilege access</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Setup: <code>./infra/aws-setup.sh</code>. Teardown: <code>./infra/aws-teardown.sh</code>.</p>
+    </section>
+
+    <!-- Outages and disasters -->
+    <section class="section alt" id="outages" aria-labelledby="outage-title">
+      <h2 id="outage-title">Outage and disaster management</h2>
+      <p class="section-lead">What the system does when the grid is down.</p>
+      <div class="cards four">
+        <article class="card-tile">
+          <h3>Triage first</h3>
+          <p>Red flags get 911 guidance at once.</p>
+        </article>
+        <article class="card-tile">
+          <h3>Find what is open</h3>
+          <p>Pharmacies, food, water, shelters.</p>
+        </article>
+        <article class="card-tile">
+          <h3>Re-plan live</h3>
+          <p>New plan in about 20 seconds.</p>
+        </article>
+        <article class="card-tile">
+          <h3>Batch runs</h3>
+          <p>Nearby stops share one driver.</p>
+        </article>
+        <article class="card-tile">
+          <h3>Human approval</h3>
+          <p>Medicine holds need a yes.</p>
+        </article>
+        <article class="card-tile">
+          <h3>Check-ins</h3>
+          <p>Call residents before a shutoff.</p>
+        </article>
+        <article class="card-tile">
+          <h3>Privacy</h3>
+          <p>Personal details are redacted.</p>
+        </article>
+        <article class="card-tile">
+          <h3>Capacity</h3>
+          <p>Full? Callers wait, coordinator alerted.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Story -->
+    <section class="section" id="story" aria-labelledby="story-title">
+      <h2 id="story-title">The story</h2>
+      <p class="section-lead">One call, start to finish. Auto-plays until you take control.</p>
+
+      <div class="story">
+        <ol class="story-steps" role="tablist" aria-label="Story steps">
+          <li><button type="button" class="story-btn" role="tab" aria-selected="true" data-step="0" id="st-0">1. Call</button></li>
+          <li><button type="button" class="story-btn" role="tab" aria-selected="false" data-step="1" id="st-1">2. Triage</button></li>
+          <li><button type="button" class="story-btn" role="tab" aria-selected="false" data-step="2" id="st-2">3. Find medicine</button></li>
+          <li><button type="button" class="story-btn" role="tab" aria-selected="false" data-step="3" id="st-3">4. Approval</button></li>
+          <li><button type="button" class="story-btn" role="tab" aria-selected="false" data-step="4" id="st-4">5. Re-plan</button></li>
+          <li><button type="button" class="story-btn" role="tab" aria-selected="false" data-step="5" id="st-5">6. Confirmed</button></li>
+        </ol>
+        <div class="story-progress" aria-hidden="true"><span></span></div>
+
+        <div class="story-panel" role="tabpanel" id="story-panel" aria-labelledby="st-0" aria-live="polite">
+          <div class="story-text">
+            <h3 id="story-title-step">A call from the kitchen</h3>
+            <p id="story-body">"My insulin is warming up and I have no car." Lifeline answers.</p>
+          </div>
+          <div class="story-flow" id="story-flow" aria-hidden="true">
+            <span class="flow-node" data-flow="caller">Caller</span>
+            <span class="flow-node" data-flow="safety">Safety</span>
+            <span class="flow-node" data-flow="bedrock">Bedrock</span>
+            <span class="flow-node" data-flow="tools">Tools</span>
+            <span class="flow-node" data-flow="coord">Coordinator</span>
+            <span class="flow-node" data-flow="driver">Driver</span>
+          </div>
+        </div>
+
+        <div class="story-controls">
+          <button type="button" class="btn small" id="story-prev">Previous</button>
+          <span class="muted small" id="story-count">Step 1 of 6</span>
+          <button type="button" class="btn small primary" id="story-next">Next</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Use cases -->
+    <section class="section alt" id="use-cases" aria-labelledby="uc-title">
+      <h2 id="uc-title">Use cases</h2>
+      <p class="section-lead">Pick a scenario.</p>
+      <div class="uc-tabs" role="tablist" aria-label="Use cases">
+        <button type="button" class="uc-btn" role="tab" aria-selected="true" data-uc="medicine">Medicine</button>
+        <button type="button" class="uc-btn" role="tab" aria-selected="false" data-uc="food">Food and water</button>
+        <button type="button" class="uc-btn" role="tab" aria-selected="false" data-uc="info">Shelter and cooling</button>
+        <button type="button" class="uc-btn" role="tab" aria-selected="false" data-uc="safety">Emergency</button>
+        <button type="button" class="uc-btn" role="tab" aria-selected="false" data-uc="checkin">Planned shutoff</button>
+      </div>
+      <div class="uc-panel" id="uc-panel" role="tabpanel" aria-live="polite">
+        <h3 id="uc-title-text"></h3>
+        <p id="uc-body"></p>
+        <ol class="uc-flow" id="uc-flow"></ol>
+      </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="closing" aria-labelledby="closing-title">
+      <h2 id="closing-title">Try it now</h2>
+      <p>Open the caller page. Then watch the console and driver page update live.</p>
+      <div class="cta-row">
+        <a class="btn primary big" href="/caller.html">Start application</a>
+        <a class="btn big" href="/console.html">Coordinator console</a>
+        <a class="btn big" href="/driver.html">Driver page</a>
+      </div>
     </section>
   </main>
 
-  <footer class="foot">Powered by Amazon Bedrock · Demo data is simulated</footer>
+  <footer class="foot">Lifeline Live · Powered by Amazon Bedrock · Demo data is simulated</footer>
 
-  <div id="incoming" class="overlay hidden" role="alertdialog" aria-modal="true" aria-labelledby="inc-title">
-    <div class="ring">
-      <div class="pulse" aria-hidden="true"></div>
-      <h2 id="inc-title">Lifeline is calling you</h2>
-      <p class="muted">A check-in before the planned power shutoff.</p>
-      <div id="incoming-actions" class="controls center"></div>
-    </div>
-  </div>
-
-  <script type="module" src="/js/caller.js"></script>
+  <script type="module" src="/js/landing.js"></script>
 </body>
 </html>
