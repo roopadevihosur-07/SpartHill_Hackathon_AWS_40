@@ -449,3 +449,86 @@ code { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-si
   .flow-block { padding-top: 1rem; }
   .fb-num { position: static; transform: none; margin-bottom: 0.2rem; border: 0; box-shadow: none; }
 }
+
+/* ---------- section-to-section transitions ---------- */
+html { scroll-behavior: smooth; }
+main > section { position: relative; }
+/* The closing band used to clip its own top edge, which would hide the wave above it. */
+.closing { overflow: visible; }
+
+/* Curved edge that joins each section to the one above it. Colour is set from JS. */
+.sec-wave {
+  position: absolute; left: 0; right: 0; top: -79px; height: 80px; overflow: hidden; pointer-events: none; z-index: 1;
+}
+.sec-wave svg { width: 200%; height: 100%; display: block; animation: waveSlide 12s linear infinite; }
+@keyframes waveSlide { to { transform: translateX(-50%); } }
+
+/* Each section fades and rises in as it scrolls into view. */
+.js main > section.enter {
+  opacity: 0; transform: translateY(44px); filter: blur(6px);
+  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.9s ease;
+}
+.js main > section.enter.is-in { opacity: 1; transform: none; filter: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .sec-wave { display: none; }
+}
+
+/* ---------- architecture diagram (routed connectors) ---------- */
+.ab-board { position: relative; background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 1.4rem 1.4rem 1.6rem; }
+.ab-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 0; }
+.ab-grid {
+  position: relative; z-index: 1; display: grid;
+  grid-template-columns: repeat(3, minmax(190px, 1fr));
+  grid-template-rows: auto repeat(4, minmax(76px, auto));
+  gap: 3.4rem 5.2rem; align-items: stretch;
+}
+.ab-head { text-align: center; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); align-self: end; }
+.ab-h1 { grid-area: 1 / 1; } .ab-h2 { grid-area: 1 / 2; } .ab-h3 { grid-area: 1 / 3; }
+.ab-caller { grid-area: 2 / 1; } .ab-safety { grid-area: 2 / 2; } .ab-guardrail { grid-area: 2 / 3; }
+.ab-coord { grid-area: 3 / 1; } .ab-agent { grid-area: 3 / 2; } .ab-bedrock { grid-area: 3 / 3; }
+.ab-driver { grid-area: 4 / 1; } .ab-tools { grid-area: 4 / 2; } .ab-data { grid-area: 4 / 3; }
+.ab-cloudwatch { grid-area: 5 / 3; }
+.ab-node { position: relative; min-height: 76px; justify-content: center; background: #fff; box-shadow: 0 1px 2px rgba(0, 28, 36, 0.08); }
+.ab-node.hot { border-color: var(--orange); background: var(--orange-tint); box-shadow: 0 0 0 4px rgba(255, 153, 0, 0.22), 0 10px 22px rgba(35, 47, 62, 0.14); }
+.ab-node.hot .node-title { color: var(--text); }
+
+.ab-path { fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 6 8; opacity: 0.7; animation: abDash 1.2s linear infinite; transition: opacity 0.3s ease, stroke-width 0.3s ease; }
+.ab-path.log { stroke-dasharray: 2 6; animation-duration: 2.2s; }
+.ab-path.alert { stroke-dasharray: 4 6; }
+.ab-path.live { stroke-width: 4; opacity: 1; }
+@keyframes abDash { to { stroke-dashoffset: -28; } }
+.ab-badge circle { stroke: #fff; stroke-width: 2; }
+.ab-badge text { font: 700 11px system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; fill: #fff; text-anchor: middle; dominant-baseline: central; }
+.ab-packet { stroke: #fff; stroke-width: 2; filter: drop-shadow(0 0 4px rgba(35, 47, 62, 0.4)); }
+
+.ab-legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; margin: 1.2rem 0 0; font-size: 0.86rem; color: var(--muted); }
+.ab-legend span { display: inline-flex; align-items: center; gap: 0.45rem; }
+.ab-sw { display: inline-block; width: 22px; height: 3px; border-radius: 2px; }
+.ab-sw.req { background: #ff9900; } .ab-sw.ctl { background: #0972d3; } .ab-sw.data { background: #1d8102; }
+.ab-sw.log { background: #879596; } .ab-sw.alert { background: #d13212; }
+
+.ab-steps { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.35rem 1.2rem; margin: 1.2rem 0 0; padding: 0; }
+.ab-steps li { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.45rem 0.6rem; border-radius: 8px; color: var(--ink-soft); font-size: 0.93rem; cursor: pointer; transition: background 0.2s ease, color 0.2s ease; }
+.ab-steps li:not([data-conn]) { cursor: default; }
+.ab-steps li[data-conn]:hover { background: var(--orange-tint); }
+.ab-steps li.live { background: var(--orange-tint); color: var(--ink); font-weight: 600; }
+.ab-steps .n { flex: none; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; color: #fff; background: var(--ink); }
+.ab-steps .n.req { background: #ff9900; color: var(--text); }
+.ab-steps .n.ctl { background: #0972d3; }
+.ab-steps .n.data { background: #1d8102; }
+.ab-steps .n.log { background: #879596; }
+.ab-steps .n.alert { background: #d13212; }
+
+@media (max-width: 860px) {
+  .ab-svg { display: none; }
+  .ab-grid { grid-template-columns: 1fr; grid-template-rows: none; gap: 0.7rem; }
+  .ab-head { display: none; }
+  .ab-node, .ab-caller, .ab-safety, .ab-guardrail, .ab-coord, .ab-agent, .ab-bedrock, .ab-driver, .ab-tools, .ab-data, .ab-cloudwatch { grid-area: auto; }
+  .ab-steps { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ab-path { animation: none; }
+  .ab-packet { display: none; }
+}

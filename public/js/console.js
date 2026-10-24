@@ -1,5 +1,16 @@
-import { el, clear, api, connectSse, ensureAdminAccess, fmtTime } from './common.js';
+import { el, clear, api, connectSse, ensureAdminAccess, fmtTime, setNumber, isFresh, flash } from './common.js';
 import { createLiveMap } from './map.js';
+
+// Items already on screen do not animate again. New ones slide in once.
+const seen = { approvals: new Set(), alerts: new Set(), calls: new Set(), dispatches: new Set(), log: new Set() };
+const stockSeen = new Map();
+let firstRender = true;
+const animate = () => !firstRender;
+const setCount = (id, n) => {
+  const node = $(id);
+  node.textContent = String(n);
+  node.classList.toggle('hot', n > 0);
+};
 
 const $ = (id) => document.getElementById(id);
 let token = '';
@@ -24,20 +35,35 @@ function renderKpis(m) {
     ['Last re-plan', m.lastReplanMs == null ? '–' : `${(m.lastReplanMs / 1000).toFixed(1)}s`],
     ['Red flags', m.redFlags],
   ];
-  const root = clear($('kpis'));
-  for (const [label, value] of items) root.append(el('div', { class: 'kpi' }, el('b', { text: String(value) }), el('span', { text: label })));
+  const root = $('kpis');
+  if (!kpiNodes.length) {
+    clear(root);
+    for (const [label] of items) {
+      const value = el('b');
+      kpiNodes.push(value);
+      root.append(el('div', { class: 'kpi' }, value, el('span', { text: label })));
+    }
+  }
+  items.forEach(([, value], i) => {
+    const node = kpiNodes[i];
+    const before = node.textContent;
+    setNumber(node, String(value));
+    if (animate() && before !== String(value)) flash(node.parentElement, 'kpi-tick');
+  });
 }
+const kpiNodes = [];
 
 function renderApprovals(list) {
   const root = clear($('approvals'));
   const pending = list.filter((a) => a.status === 'pending');
+  setCount('approvals-count', pending.length);
   if (!pending.length) root.append(el('div', { class: 'empty', text: 'Nothing waiting.' }));
   for (const a of pending) {
     const approve = el('button', { class: 'btn good small', type: 'button', text: 'Approve' });
     const reject = el('button', { class: 'btn danger small', type: 'button', text: 'Reject' });
     approve.addEventListener('click', () => act(approve, () => post(`/api/admin/approvals/${a.id}/approve`)));
     reject.addEventListener('click', () => act(reject, () => post(`/api/admin/approvals/${a.id}/reject`)));
-    root.append(el('div', { class: 'item attn' },
+    root.append(el('div', { class: `item attn${isFresh(seen.approvals, a.id, animate()) ? ' fresh' : ''}` },
       el('div', { class: 'row' }, el('b', { text: a.id }), el('span', { class: 'small muted', text: fmtTime(a.createdAt) })),
       el('div', { text: a.summary }),
       el('div', { class: 'actions' }, approve, reject)));
@@ -49,11 +75,14 @@ function renderApprovals(list) {
 function renderAlerts(alerts) {
   const root = clear($('alerts'));
   const open = alerts.filter((a) => !a.acknowledged).reverse();
+  setCount('alerts-count', open.length);
   if (!open.length) root.append(el('div', { class: 'empty', text: 'No open alerts.' }));
   for (const a of open) {
     const ack = el('button', { class: 'btn small', type: 'button', text: 'Acknowledge' });
     ack.addEventListener('click', () => act(ack, () => post(`/api/admin/alerts/${a.id}/ack`)));
-    root.append(el('div', { class: `item ${a.severity === 'critical' ? 'crit' : 'attn'}` },
+    const key = a.id ?? `${a.ts}|${a.title}`;
+    const fresh = isFresh(seen.alerts, key, animate()) ? ' fresh' : '';
+    root.append(el('div', { class: `item ${a.severity === 'critical' ? 'crit' : 'attn'}${fresh}` },
       el('div', { class: 'row' }, el('b', { text: a.title }), el('span', { class: 'small muted', text: fmtTime(a.ts) })),
       el('div', { text: a.detail }), el('div', { class: 'actions' }, ack)));
   }
@@ -65,7 +94,8 @@ function renderCalls(sessions) {
   const root = clear($('calls'));
   if (!sessions.length) root.append(el('div', { class: 'empty', text: 'No calls yet.' }));
   for (const s of [...sessions].reverse().slice(0, 6)) {
-    root.append(el('div', { class: `item ${s.redFlagged ? 'crit' : ''}` },
+    const fresh = isFresh(seen.calls, s.id, animate()) ? ' fresh' : '';
+    root.append(el('div', { class: `item ${s.redFlagged ? 'crit' : ''}${fresh}` },
       el('div', { class: 'row' },
         el('b', { text: `${s.direction === 'outbound' ? '↗ ' : '↙ '}${s.resident ?? `Caller ${s.shortId}`}` }),
         el('span', { class: 'small muted', text: `${s.neighborhood} · ${s.language}${s.need ? ` · ${s.need.resource_type}/${s.need.urgency}` : ''}` })),
@@ -94,9 +124,14 @@ function renderDispatches(dispatches, drivers) {
   const live = dispatches.filter((d) => !['delivered'].includes(d.status)).slice(-6).reverse();
   if (!live.length) root.append(el('div', { class: 'empty', text: 'No active dispatches.' }));
   for (const d of live) {
-    root.append(el('div', { class: `item ${d.status === 'failed' ? 'crit' : ''}` },
+    const fresh = isFresh(seen.dispatches, d.id, animate()) ? ' fresh' : '';
+    const stage = { assigned: 0, rerouting: 1, accepted: 1, delivered: 2 }[d.status] ?? -1;
+    const steps = ['Assigned', 'Accepted', 'Delivered'].map((label, i) =>
+      el('li', { class: i < stage ? 'done' : i === stage ? 'now' : '' }, el('span', { class: 'dot' }), label));
+    root.append(el('div', { class: `item ${d.status === 'failed' ? 'crit' : ''}${fresh}` },
       el('div', { class: 'row' }, el('b', { text: `${d.id} · ${d.driver?.name ?? 'unassigned'}` }),
         el('span', { class: 'small', text: `${d.status}${d.etaMin ? ` · ~${d.etaMin} min` : ''}${d.batched ? ' · batched' : ''}` })),
+      el('ol', { class: 'stepper', 'aria-label': `Status: ${d.status}` }, steps),
       el('div', { class: 'small', text: `${d.pickup.label} → ${d.dropoff.label}` }),
       d.error ? el('div', { class: 'small', text: d.error }) : null));
   }
@@ -110,13 +145,24 @@ function renderSites(sites) {
     const items = Object.entries(s.inventory).map(([k, v]) => {
       const out = el('button', { class: 'btn small', type: 'button', title: `Mark ${k} out of stock at ${s.name}`, text: '✕' });
       out.addEventListener('click', () => act(out, () => post('/api/admin/stock-out', { siteId: s.id, item: k })));
-      return el('span', { class: v === 0 ? 'zero' : '' }, `${k.replace(/_/g, ' ')}: ${v} `, v > 0 ? out : null, ' ');
+      const start = s.initialInventory?.[k] || v || 1;
+      const bar = el('i', { class: 'stock-bar' });
+      bar.style.setProperty('--w', `${Math.max(0, Math.min(100, (v / start) * 100))}%`);
+      const key = `${s.id}:${k}`;
+      if (animate() && stockSeen.has(key) && stockSeen.get(key) !== v) flashLater.push(key);
+      stockSeen.set(key, v);
+      return el('span', { class: `stock ${v === 0 ? 'zero' : ''}`, dataset: { key } }, `${k.replace(/_/g, ' ')}: ${v} `, v > 0 ? out : null, bar);
     });
     body.append(el('tr', {}, el('td', {}, el('b', { text: s.name }), el('div', { class: 'small muted', text: s.open ? s.hours : s.hours }), s.hasPower ? null : el('span', { class: 'badge off', text: 'no power' })), el('td', {}, items)));
   }
   table.append(body);
   root.append(table);
+  for (const key of flashLater.splice(0)) {
+    const node = table.querySelector(`[data-key="${key}"]`);
+    if (node) flash(node, 'tick');
+  }
 }
+const flashLater = [];
 
 function renderLog(log) {
   const root = $('log');
@@ -124,7 +170,8 @@ function renderLog(log) {
   clear(root);
   const shown = log.filter((l) => showDebug || l.level !== 'debug');
   for (const l of shown) {
-    root.append(el('div', { class: `entry ${l.level}` },
+    const fresh = isFresh(seen.log, `${l.ts}|${l.summary}`, animate()) ? ' fresh' : '';
+    root.append(el('div', { class: `entry ${l.level}${fresh}` },
       el('span', { class: 'when', text: fmtTime(l.ts) }), el('span', { class: 'kind', text: l.kind }), l.summary,
       l.reason ? el('span', { class: 'why', text: `why: ${l.reason}` }) : null));
   }
@@ -156,6 +203,7 @@ function render() {
   renderSites(snap.sites);
   renderLog(snap.log);
   renderResidents(snap.residents);
+  firstRender = false;
   $('approval-toggle').checked = snap.settings.requireMedicineApproval;
 }
 

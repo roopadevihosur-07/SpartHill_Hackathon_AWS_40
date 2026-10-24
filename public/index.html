@@ -169,67 +169,72 @@
     <!-- Architecture -->
     <section class="section alt" id="architecture" aria-labelledby="arch-title">
       <h2 id="arch-title">Project architecture</h2>
-      <p class="section-lead">Click a box to see its role.</p>
+      <p class="section-lead">Follow the numbered arrows in order. Click a box for its role.</p>
 
-      <div class="arch" id="arch" role="group" aria-label="Architecture diagram">
-        <div class="arch-col">
-          <p class="col-label">People</p>
-          <button class="node" type="button" data-node="caller" aria-pressed="false">
-            <span class="node-title">Caller</span><span class="node-sub">voice or text</span>
-          </button>
-          <button class="node" type="button" data-node="driver" aria-pressed="false">
-            <span class="node-title">Volunteer driver</span><span class="node-sub">route and drop-offs</span>
-          </button>
-          <button class="node" type="button" data-node="coord" aria-pressed="false">
-            <span class="node-title">Coordinator</span><span class="node-sub">approvals and re-plans</span>
-          </button>
-        </div>
+      <div class="ab-board" id="ab-board">
+        <svg class="ab-svg" id="ab-svg" aria-hidden="true">
+          <defs>
+            <marker id="ab-m-req" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#ff9900"/></marker>
+            <marker id="ab-m-ctl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0972d3"/></marker>
+            <marker id="ab-m-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1d8102"/></marker>
+            <marker id="ab-m-log" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#879596"/></marker>
+            <marker id="ab-m-alert" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#d13212"/></marker>
+          </defs>
+          <g id="ab-paths"></g>
+          <g id="ab-badges"></g>
+          <circle id="ab-packet" class="ab-packet" r="6" cx="-20" cy="-20"></circle>
+        </svg>
 
-        <div class="arch-col">
-          <p class="col-label">Lifeline server (Node)</p>
-          <button class="node wide" type="button" data-node="agent" aria-pressed="false">
-            <span class="node-title">Agent loop</span><span class="node-sub">Converse API with tools</span>
-          </button>
-          <button class="node wide" type="button" data-node="safety" aria-pressed="false">
-            <span class="node-title">Safety layer</span><span class="node-sub">red flags, PII redaction</span>
-          </button>
-          <button class="node wide" type="button" data-node="tools" aria-pressed="false">
-            <span class="node-title">Tools</span><span class="node-sub">sites, stock, dispatch, holds</span>
-          </button>
-          <button class="node wide" type="button" data-node="data" aria-pressed="false">
-            <span class="node-title">Live data</span><span class="node-sub">openFDA, RxNorm</span>
-          </button>
-        </div>
+        <div class="ab-grid">
+          <div class="ab-head ab-h1">People</div>
+          <div class="ab-head ab-h2">Lifeline server</div>
+          <div class="ab-head ab-h3">AWS and live data</div>
 
-        <div class="arch-col">
-          <p class="col-label">Amazon Web Services</p>
-          <button class="node" type="button" data-node="bedrock" aria-pressed="false">
-            <span class="node-title">Amazon Bedrock</span><span class="node-sub">Nova Pro, us-east-1</span>
-          </button>
-          <button class="node" type="button" data-node="guardrail" aria-pressed="false">
-            <span class="node-title">Bedrock Guardrail</span><span class="node-sub">blocks advice and attacks</span>
-          </button>
-          <button class="node" type="button" data-node="cloudwatch" aria-pressed="false">
-            <span class="node-title">CloudWatch</span><span class="node-sub">logs and dashboard</span>
-          </button>
+          <button type="button" class="node ab-node ab-caller" data-node="caller" aria-pressed="false"><span class="node-title">Caller</span><span class="node-sub">browser, voice or text</span></button>
+          <button type="button" class="node ab-node ab-safety" data-node="safety" aria-pressed="false"><span class="node-title">Safety layer</span><span class="node-sub">red flags, redaction, reply check</span></button>
+          <button type="button" class="node ab-node ab-guardrail" data-node="guardrail" aria-pressed="false"><span class="node-title">Bedrock Guardrail</span><span class="node-sub">screens every model call</span></button>
+
+          <button type="button" class="node ab-node ab-coord" data-node="coord" aria-pressed="false"><span class="node-title">Coordinator</span><span class="node-sub">approves holds</span></button>
+          <button type="button" class="node ab-node ab-agent" data-node="agent" aria-pressed="false"><span class="node-title">Agent loop</span><span class="node-sub">Converse API with tools</span></button>
+          <button type="button" class="node ab-node ab-bedrock" data-node="bedrock" aria-pressed="false"><span class="node-title">Amazon Bedrock</span><span class="node-sub">Nova Pro, us-east-1</span></button>
+
+          <button type="button" class="node ab-node ab-driver" data-node="driver" aria-pressed="false"><span class="node-title">Volunteer driver</span><span class="node-sub">route and drop-offs</span></button>
+          <button type="button" class="node ab-node ab-tools" data-node="tools" aria-pressed="false"><span class="node-title">Tools</span><span class="node-sub">sites, stock, dispatch, holds</span></button>
+          <button type="button" class="node ab-node ab-data" data-node="data" aria-pressed="false"><span class="node-title">Live data</span><span class="node-sub">openFDA shortages, RxNorm</span></button>
+
+          <button type="button" class="node ab-node ab-cloudwatch" data-node="cloudwatch" aria-pressed="false"><span class="node-title">CloudWatch</span><span class="node-sub">decision log and metrics</span></button>
         </div>
       </div>
+
+      <div class="ab-legend" aria-label="Arrow colours">
+        <span><i class="ab-sw req"></i>Caller request</span>
+        <span><i class="ab-sw ctl"></i>Approval and control</span>
+        <span><i class="ab-sw data"></i>Live data</span>
+        <span><i class="ab-sw log"></i>Logging</span>
+        <span><i class="ab-sw alert"></i>Red-flag alert</span>
+      </div>
+
+      <ol class="ab-steps" aria-label="Request path, in order">
+        <li data-conn="c1"><span class="n req">1</span>Caller speaks or types. Safety receives it.</li>
+        <li data-conn="c2"><span class="n req">2</span>Safety checks for red flags, then the agent runs.</li>
+        <li data-conn="c3"><span class="n req">3</span>Agent sends the request to Bedrock with the tools.</li>
+        <li data-conn="c4"><span class="n ctl">4</span>Guardrail screens the model call.</li>
+        <li data-conn="c5"><span class="n req">5</span>Bedrock picks a tool and returns the choice.</li>
+        <li data-conn="c6"><span class="n req">6</span>Agent runs the tool.</li>
+        <li data-conn="c7"><span class="n data">7</span>Tools look up live shortages and drug names.</li>
+        <li data-conn="c8"><span class="n data">·</span>Live data returns the result.</li>
+        <li data-conn="c9"><span class="n ctl">8</span>A medicine hold waits for coordinator approval.</li>
+        <li data-conn="c10"><span class="n ctl">9</span>Coordinator approves.</li>
+        <li data-conn="c11"><span class="n req">10</span>Tools dispatch a driver.</li>
+        <li data-conn="c12"><span class="n log">11</span>Decision log and metrics go to CloudWatch.</li>
+        <li data-conn="c13"><span class="n req">12</span>Agent sends the reply back through Safety.</li>
+        <li data-conn="c14"><span class="n req">13</span>Safety checks the reply. The caller gets a confirmation.</li>
+        <li><span class="n alert">!</span>Red flag: Safety alerts the coordinator directly.</li>
+      </ol>
 
       <div class="detail" id="arch-detail" aria-live="polite">
         <h3 id="detail-title">Pick a box</h3>
         <p id="detail-body" class="muted">Each part is explained here.</p>
-      </div>
-
-      <div class="pipeline" aria-label="Request flow">
-        <span class="step">Speak</span>
-        <span class="arrow" aria-hidden="true">→</span>
-        <span class="step">Safety</span>
-        <span class="arrow" aria-hidden="true">→</span>
-        <span class="step">Pick tools</span>
-        <span class="arrow" aria-hidden="true">→</span>
-        <span class="step">Run tools</span>
-        <span class="arrow" aria-hidden="true">→</span>
-        <span class="step">Confirm</span>
       </div>
     </section>
 

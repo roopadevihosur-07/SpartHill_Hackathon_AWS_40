@@ -234,3 +234,123 @@ a.btn { text-decoration: none; }
 .pin.base { background: #fff; border: 2px dashed #d13212; width: 12px; height: 12px; box-shadow: none; }
 .pin.driver { background: #d13212; width: 18px; height: 18px; box-shadow: 0 0 0 4px rgba(209, 50, 18, 0.25); }
 .map .pin.driver { animation: none; }
+
+/* =====================================================================
+   Live motion for the driver page and the coordinator console.
+   Entrance animations run once per item; numbers count and flash on change.
+   ===================================================================== */
+
+@keyframes rise-in { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes slide-in { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
+@keyframes glow-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 153, 0, 0.45); } 60% { box-shadow: 0 0 0 10px rgba(255, 153, 0, 0); } }
+@keyframes ping-ring { 0% { transform: scale(0.6); opacity: 0.8; } 100% { transform: scale(2.4); opacity: 0; } }
+@keyframes tick-flash { 0% { background-color: rgba(255, 153, 0, 0.35); } 100% { background-color: transparent; } }
+@keyframes check-draw { from { transform: rotate(45deg) scale(0); } to { transform: rotate(45deg) scale(1); } }
+
+.fresh { animation: rise-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.entry.fresh { animation: slide-in 0.45s ease both; }
+.tick { animation: tick-flash 1.1s ease; border-radius: 4px; }
+.kpi-tick b { animation: rise-in 0.4s ease; }
+
+/* count badges on panel headings */
+.count { display: inline-flex; align-items: center; justify-content: center; min-width: 1.5rem; height: 1.5rem; padding: 0 0.45rem; border-radius: 999px; font-size: 0.8rem; font-weight: 800; background: var(--line-soft); color: var(--ink-soft); transition: background 0.3s ease, color 0.3s ease; }
+.count.hot { background: var(--orange); color: var(--text); animation: glow-pulse 1.8s ease-in-out infinite; }
+
+/* panels arrive one after another */
+.grid > section > .panel { animation: rise-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.grid > section > .panel:nth-child(2) { animation-delay: 0.08s; }
+.grid > section > .panel:nth-child(3) { animation-delay: 0.16s; }
+.grid > section > .panel:nth-child(4) { animation-delay: 0.24s; }
+.grid > section > .panel:nth-child(5) { animation-delay: 0.32s; }
+
+/* list items lift on hover */
+.item { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.item:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(35, 47, 62, 0.12); }
+
+/* console nav: a light sweep across the bar */
+.console .nav { position: relative; overflow: hidden; }
+.console .nav::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: -40%; width: 30%; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 153, 0, 0.25), transparent);
+  animation: nav-sweep 6s ease-in-out infinite;
+}
+@keyframes nav-sweep { 0% { left: -40%; } 60%, 100% { left: 120%; } }
+
+/* live connection badge breathes */
+.badge.live::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: glow-pulse 1.6s ease-in-out infinite; }
+
+/* stepper: Assigned -> Accepted -> Delivered */
+.stepper { list-style: none; display: flex; align-items: center; gap: 0.3rem; margin: 0.6rem 0; padding: 0; font-size: 0.78rem; color: var(--muted); }
+.stepper li { display: flex; align-items: center; gap: 0.35rem; font-weight: 600; }
+.stepper li:not(:last-child)::after { content: ''; width: 2.2rem; height: 3px; border-radius: 3px; background: var(--line); margin: 0 0.25rem; transition: background 0.6s ease; }
+.stepper li.done:not(:last-child)::after { background: var(--ok); }
+.stepper .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--line); border: 2px solid #fff; box-shadow: 0 0 0 1px var(--line); transition: background 0.4s ease, transform 0.4s ease; }
+.stepper li.done .dot { background: var(--ok); box-shadow: 0 0 0 1px var(--ok); }
+.stepper li.now { color: var(--ink); }
+.stepper li.now .dot { background: var(--orange); box-shadow: 0 0 0 1px var(--orange-dark); transform: scale(1.2); animation: glow-pulse 1.6s ease-in-out infinite; }
+.stepper li.now .dot::after { }
+
+/* stock bars under each item */
+.stock { display: inline-block; position: relative; margin-right: 0.5rem; padding-bottom: 0.25rem; }
+.stock-bar { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; border-radius: 3px; background: var(--line-soft); overflow: hidden; display: block; }
+.stock-bar::after { content: ''; position: absolute; inset: 0; width: var(--w, 0%); background: linear-gradient(90deg, var(--ok), #7ed957); border-radius: 3px; transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.stock.zero .stock-bar::after { background: var(--bad); }
+
+/* ---------- driver page ---------- */
+.drv-hero { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: linear-gradient(120deg, #fff, #fff8ec); border-left: 4px solid var(--orange); animation: rise-in 0.5s ease both; }
+.drv-who { display: flex; flex-direction: column; gap: 0.3rem; min-width: 260px; }
+.drv-who select { max-width: 360px; }
+.drv-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
+@media (max-width: 560px) { .drv-stats { grid-template-columns: 1fr; } }
+.ds { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 1rem 1.2rem; border-top: 3px solid var(--orange); animation: rise-in 0.5s ease both; }
+.ds:nth-child(2) { animation-delay: 0.08s; }
+.ds:nth-child(3) { animation-delay: 0.16s; }
+.ds b { display: block; font-size: 2rem; line-height: 1.1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ds span { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.dcard { position: relative; overflow: hidden; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.dcard:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(35, 47, 62, 0.14); }
+.dc-top { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.dc-badge { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 999px; background: var(--blue-tint); color: var(--blue); }
+.dc-badge.accepted { background: var(--ok-tint); color: var(--ok); }
+.dc-badge.rerouting { background: var(--orange-tint); color: var(--orange-dark); animation: glow-pulse 1.6s ease-in-out infinite; }
+.dc-badge.delivered { background: var(--line-soft); color: var(--muted); }
+.dc-badge.failed { background: var(--bad-tint); color: var(--bad); }
+.eta { margin: 0.2rem 0; }
+
+/* route: the next stop pulses and the line between stops shows direction */
+.route li { transition: background 0.3s ease; }
+.route li::before { transition: transform 0.3s ease, background 0.3s ease; }
+.route li.next::before { background: var(--orange); transform: scale(1.25); animation: glow-pulse 1.4s ease-in-out infinite; }
+.route li.next b::after { content: ' · next'; color: var(--orange-dark); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+.route li.next::after { content: ''; position: absolute; left: -10px; top: 0.2rem; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--orange); animation: ping-ring 1.6s ease-out infinite; pointer-events: none; }
+.route li { position: relative; }
+
+/* buttons press in */
+.btn { transition: transform 0.12s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+.btn:active:not(:disabled) { transform: scale(0.96); }
+.btn.pressed { animation: rise-in 0.3s ease; }
+.btn.good:not(:disabled), .btn.primary:not(:disabled) { box-shadow: 0 6px 14px rgba(35, 47, 62, 0.15); }
+
+/* delivered: a check mark pops in */
+.done-mark { position: absolute; right: 1.2rem; top: 1rem; width: 26px; height: 14px; border-left: 4px solid var(--ok); border-bottom: 4px solid var(--ok); transform: rotate(45deg) scale(0); transform-origin: center; animation: check-draw 0.5s 0.15s cubic-bezier(0.3, 1.4, 0.5, 1) forwards; }
+
+/* arriving job: a toast slides in */
+.toasts { position: fixed; top: 70px; right: 1rem; display: grid; gap: 0.5rem; z-index: 70; }
+.toast { background: var(--ink); color: #fff; padding: 0.7rem 1rem; border-radius: 10px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3); border-left: 4px solid var(--orange); font-weight: 600; animation: rise-in 0.35s ease both; transition: opacity 0.4s ease, transform 0.4s ease; }
+.toast.out { opacity: 0; transform: translateX(20px); }
+
+/* empty state: radar rings */
+.radar-card { text-align: center; padding: 2.4rem 1.2rem; overflow: hidden; }
+.radar { position: relative; width: 120px; height: 120px; margin: 0 auto 1rem; border-radius: 50%; background: radial-gradient(circle, rgba(255, 153, 0, 0.18), transparent 70%); }
+.radar::before { content: ''; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--orange); }
+.radar span { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255, 153, 0, 0.6); animation: ping-ring 2.4s ease-out infinite; }
+.radar span:nth-child(2) { animation-delay: 0.8s; }
+.radar span:nth-child(3) { animation-delay: 1.6s; }
+.radar-text { color: var(--muted); margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fresh, .entry.fresh, .ds, .drv-hero, .grid > section > .panel, .toast, .done-mark, .radar span, .route li.next::after,
+  .stepper li.now .dot, .dc-badge.rerouting, .count.hot, .badge.live::before, .console .nav::after { animation: none !important; }
+  .done-mark { transform: rotate(45deg) scale(1); }
+}

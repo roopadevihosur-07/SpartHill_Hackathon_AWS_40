@@ -111,3 +111,48 @@ export async function ensureAdminAccess(mount, { title }) {
     });
   }
 }
+
+// ---------- motion helpers (shared by the console and the driver page) ----------
+const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/**
+ * Sets a node's text. If the text is a number that changed, it counts from the old value.
+ * Non-numeric text is set as-is.
+ */
+export function setNumber(node, text) {
+  const match = /^(-?\d+(?:\.\d+)?)(.*)$/.exec(text);
+  const prev = node.dataset.n;
+  if (!match || prev === undefined || reduceMotion()) {
+    node.textContent = text;
+    if (match) node.dataset.n = match[1];
+    return;
+  }
+  const target = Number(match[1]);
+  const from = Number(prev);
+  const suffix = match[2];
+  const decimals = (match[1].split('.')[1] ?? '').length;
+  if (from === target) { node.textContent = text; return; }
+  node.dataset.n = match[1];
+  const start = performance.now();
+  const tick = (now) => {
+    const t = Math.min(1, (now - start) / 650);
+    const eased = 1 - Math.pow(1 - t, 3);
+    node.textContent = `${(from + (target - from) * eased).toFixed(decimals)}${suffix}`;
+    if (t < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+/** True when a key is new. Items seen on the first render do not animate in. */
+export function isFresh(seen, key, animate) {
+  const fresh = !seen.has(key);
+  seen.add(key);
+  return fresh && animate;
+}
+
+/** Restarts a CSS class animation on a node. */
+export function flash(node, cls = 'tick') {
+  node.classList.remove(cls);
+  void node.offsetWidth;
+  node.classList.add(cls);
+}
