@@ -397,3 +397,55 @@ code { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-si
 .compare .side.in li { animation: rise 0.5s ease both; }
 .compare .side.in li:nth-child(2) { animation-delay: 0.12s; }
 .compare .side.in li:nth-child(3) { animation-delay: 0.24s; }
+
+/* ---------- how the flow works ---------- */
+.flow-track { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.6rem; margin-bottom: 1.5rem; }
+.flow-rail { position: absolute; top: 26px; left: calc(100% / 12); right: calc(100% / 12); height: 4px; background: var(--line); border-radius: 4px; z-index: 0; }
+.flow-rail-fill {
+  position: absolute; left: 0; top: 0; height: 100%; border-radius: 4px; width: calc(var(--p, 0) * 100%);
+  background: linear-gradient(90deg, #ff9900, #ffd27a); transition: width 0.8s ease;
+}
+.flow-packet {
+  position: absolute; top: 50%; left: var(--x, 0%); width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%;
+  background: var(--orange); box-shadow: 0 0 0 5px rgba(255, 153, 0, 0.25), 0 0 16px rgba(255, 153, 0, 0.7);
+  transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.flow-block {
+  position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
+  padding: 2.4rem 0.4rem 0.9rem; min-width: 0; border: 1.5px solid var(--line); border-radius: 12px;
+  background: #fff; color: var(--ink); cursor: pointer; text-align: center;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+.flow-block:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(35, 47, 62, 0.14); }
+.flow-block[aria-pressed='true'] { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.2), 0 12px 24px rgba(35, 47, 62, 0.14); background: var(--orange-tint); }
+.fb-num {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem;
+  background: var(--ink); color: #fff; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--line);
+}
+.flow-block[aria-pressed='true'] .fb-num { background: var(--orange); color: var(--text); }
+.fb-title { font-weight: 700; font-size: 0.98rem; }
+.fb-sub { font-size: 0.8rem; color: var(--muted); }
+
+.flow-detail {
+  background: var(--ink); color: #fff; border-radius: 14px; padding: 1.4rem 1.6rem; min-height: 9rem;
+  box-shadow: 0 20px 50px rgba(22, 30, 45, 0.25);
+}
+.flow-who { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.7rem; }
+.flow-who span { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; padding: 0.2rem 0.65rem; border-radius: 999px; background: rgba(255, 255, 255, 0.1); color: #d5dbdb; }
+.flow-who span.on { background: var(--orange); color: var(--text); }
+.flow-detail h3 { color: var(--orange); font-size: 1.3rem; margin-bottom: 0.3rem; }
+.flow-detail p { color: #e6ebec; margin-bottom: 0.8rem; }
+.flow-points { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.45rem; }
+.flow-points li { position: relative; padding-left: 1.4rem; color: #d5dbdb; font-size: 0.95rem; }
+.flow-points li::before { content: '▸'; position: absolute; left: 0; color: var(--orange); }
+.flow-points li { animation: rise 0.45s ease both; animation-delay: calc(var(--i, 0) * 0.08s); }
+
+.flow-controls { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.2rem; }
+
+@media (max-width: 860px) {
+  .flow-track { grid-template-columns: repeat(2, 1fr); }
+  .flow-rail, .flow-packet { display: none; }
+  .flow-block { padding-top: 1rem; }
+  .fb-num { position: static; transform: none; margin-bottom: 0.2rem; border: 0; box-shadow: none; }
+}

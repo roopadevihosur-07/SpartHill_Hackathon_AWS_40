@@ -14,6 +14,7 @@
   <header class="nav">
     <a class="brand" href="/"><img src="/img/logo.svg" alt="" width="28" height="28"><span>Lifeline</span><span class="brand-sub">Live</span></a>
     <nav class="nav-links" aria-label="Page sections">
+      <a href="#flow">Flow</a>
       <a href="#why">Why it matters</a>
       <a href="#architecture">Architecture</a>
       <a href="#aws">AWS</a>
@@ -37,7 +38,7 @@
         <p class="lead">Speak or type. Lifeline finds medicine, food, water or shelter nearby and sends a driver. A human approves the risky steps.</p>
         <div class="cta-row">
           <a class="btn primary big" href="/caller.html">Start application</a>
-          <a class="btn big" href="#architecture">How it works</a>
+          <a class="btn big" href="#flow">How it works</a>
         </div>
         <ul class="hero-facts" aria-label="Key facts">
           <li><b>Amazon Bedrock</b> runs the agent</li>
@@ -67,6 +68,35 @@
       <div class="stat"><b data-count="6" data-suffix=" ms">6 ms</b><span>for 911 guidance to reach the caller</span></div>
       <div class="stat"><b data-count="5" data-suffix=" s">5 s</b><span>median caller turn</span></div>
       <p class="stats-note">Measured on a laptop with Nova Pro (see README). Your numbers will differ.</p>
+    </section>
+
+    <!-- Flow -->
+    <section class="section flow-section" id="flow" aria-labelledby="flow-title">
+      <h2 id="flow-title">How the flow works</h2>
+      <p class="section-lead">Click a block, or press Play to watch one request move through the system.</p>
+
+      <div class="flow-track" id="flow-track">
+        <div class="flow-rail" aria-hidden="true"><span class="flow-rail-fill" id="flow-fill"></span><span class="flow-packet" id="flow-packet"></span></div>
+        <button type="button" class="flow-block" data-flow-step="0" aria-pressed="true"><span class="fb-num">1</span><span class="fb-title">Speak</span><span class="fb-sub">Voice or text</span></button>
+        <button type="button" class="flow-block" data-flow-step="1" aria-pressed="false"><span class="fb-num">2</span><span class="fb-title">Safety</span><span class="fb-sub">Red flags first</span></button>
+        <button type="button" class="flow-block" data-flow-step="2" aria-pressed="false"><span class="fb-num">3</span><span class="fb-title">Understand</span><span class="fb-sub">Bedrock plans</span></button>
+        <button type="button" class="flow-block" data-flow-step="3" aria-pressed="false"><span class="fb-num">4</span><span class="fb-title">Find and hold</span><span class="fb-sub">Live stock</span></button>
+        <button type="button" class="flow-block" data-flow-step="4" aria-pressed="false"><span class="fb-num">5</span><span class="fb-title">Approve</span><span class="fb-sub">Dispatch a driver</span></button>
+        <button type="button" class="flow-block" data-flow-step="5" aria-pressed="false"><span class="fb-num">6</span><span class="fb-title">Confirm</span><span class="fb-sub">Re-plan if needed</span></button>
+      </div>
+
+      <div class="flow-detail" id="flow-detail" aria-live="polite">
+        <div class="flow-who" id="flow-who"></div>
+        <h3 id="flow-detail-title"></h3>
+        <p id="flow-detail-body"></p>
+        <ul class="flow-points" id="flow-points"></ul>
+      </div>
+
+      <div class="flow-controls">
+        <button type="button" class="btn small primary" id="flow-play">Pause</button>
+        <button type="button" class="btn small" id="flow-prev">Previous</button>
+        <button type="button" class="btn small" id="flow-next">Next</button>
+      </div>
     </section>
 
     <!-- Overview -->

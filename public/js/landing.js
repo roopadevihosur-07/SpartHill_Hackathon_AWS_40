@@ -53,6 +53,11 @@ const USE_CASES = {
 
 const $ = (sel) => document.querySelector(sel);
 
+// Motion state. Declared up here because the first story render below reads it.
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let autoOn = !reduceMotion;
+let storyPaused = false;
+
 // ---------- architecture ----------
 const detailTitle = $('#detail-title');
 const detailBody = $('#detail-body');
@@ -146,8 +151,6 @@ showUseCase('medicine');
 // =====================================================================
 // Motion. Skipped entirely when the visitor prefers reduced motion.
 // =====================================================================
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
 // Story progress bar: fills over the auto-advance interval.
 const STORY_INTERVAL = 5000;
 function restartProgress() {
@@ -159,8 +162,6 @@ function restartProgress() {
 }
 
 // Auto-advance the story until the visitor takes control of it.
-let autoOn = !reduceMotion;
-let storyPaused = false;
 const storyEl = $('#story');
 storyEl.addEventListener('pointerenter', () => { storyPaused = true; document.querySelector('.story-progress span')?.classList.remove('run'); });
 storyEl.addEventListener('pointerleave', () => { storyPaused = false; restartProgress(); });
@@ -274,3 +275,79 @@ if (!reduceMotion) {
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 }
+
+// ---------- how the flow works ----------
+const FLOW_ACTORS = ['Caller', 'Safety', 'Bedrock', 'Tools', 'Coordinator', 'Driver'];
+const FLOW = [
+  { title: 'Speak', body: 'The caller speaks or types in the browser. No app to install.', who: ['Caller'],
+    points: ['Voice uses the browser microphone', 'The text box works the same way', 'Any language the caller chooses'] },
+  { title: 'Safety check', body: 'Red flags are checked before the model runs.', who: ['Caller', 'Safety'],
+    points: ['Chest pain or breathing trouble gets 911 guidance, spoken from code', 'Personal details are redacted before storage', 'Critical cases alert the coordinator'] },
+  { title: 'Understand and plan', body: 'Amazon Bedrock reads the request and chooses which tools to call.', who: ['Bedrock', 'Safety'],
+    points: ['Converse API with tool use', 'Bedrock Guardrail screens every model call', 'Facts come only from tool results'] },
+  { title: 'Find and hold', body: 'Tools search live sites and stock, then hold the medicine.', who: ['Tools', 'Bedrock'],
+    points: ['openFDA shortage list and RxNorm names are live', 'Nearest site with power and stock', 'Medicine held for the caller'] },
+  { title: 'Approve and dispatch', body: 'A coordinator approves risky steps. A driver is assigned.', who: ['Coordinator', 'Driver'],
+    points: ['Medicine holds need a coordinator approval', 'The driver accepts; nearby stops are batched', 'The caller gets a confirmation card'] },
+  { title: 'Confirm and re-plan', body: 'If stock runs out, the plan changes and everyone sees it.', who: ['Tools', 'Driver', 'Caller'],
+    points: ['Re-plan in about 20 seconds', 'Driver re-routed live on the map', 'Every decision is logged'] },
+];
+const FLOW_STEP_MS = 4000;
+
+const flowBlocks = [...document.querySelectorAll('.flow-block')];
+const flowPacket = document.getElementById('flow-packet');
+const flowFill = document.getElementById('flow-fill');
+const flowWho = $('#flow-who');
+const flowTitle = $('#flow-detail-title');
+const flowBody = $('#flow-detail-body');
+const flowPoints = $('#flow-points');
+const flowPlay = $('#flow-play');
+let flowIndex = 0;
+let flowTimer = null;
+
+function showFlow(i) {
+  const n = FLOW.length;
+  flowIndex = (i + n) % n;
+  const step = FLOW[flowIndex];
+  flowBlocks.forEach((b, k) => b.setAttribute('aria-pressed', k === flowIndex ? 'true' : 'false'));
+  // The rail runs from the centre of block 1 to the centre of block 6, so block i sits at i / (n - 1).
+  const along = flowIndex / (n - 1);
+  flowPacket.style.setProperty('--x', `${along * 100}%`);
+  flowFill.style.setProperty('--p', String(along));
+  flowWho.replaceChildren(...FLOW_ACTORS.map((name) => {
+    const chip = document.createElement('span');
+    chip.textContent = name;
+    if (step.who.includes(name)) chip.classList.add('on');
+    return chip;
+  }));
+  flowTitle.textContent = step.title;
+  flowBody.textContent = step.body;
+  flowPoints.replaceChildren(...step.points.map((text, k) => {
+    const li = document.createElement('li');
+    li.textContent = text;
+    li.style.setProperty('--i', String(k));
+    return li;
+  }));
+  swapIn(flowTitle);
+  swapIn(flowBody);
+}
+
+function startFlow() {
+  stopFlow();
+  flowTimer = setInterval(() => { if (!document.hidden) showFlow(flowIndex + 1); }, FLOW_STEP_MS);
+  flowPlay.textContent = 'Pause';
+}
+
+function stopFlow() {
+  clearInterval(flowTimer);
+  flowTimer = null;
+  flowPlay.textContent = 'Play';
+}
+
+flowBlocks.forEach((b) => b.addEventListener('click', () => { stopFlow(); showFlow(Number(b.dataset.flowStep)); }));
+$('#flow-prev').addEventListener('click', () => { stopFlow(); showFlow(flowIndex - 1); });
+$('#flow-next').addEventListener('click', () => { stopFlow(); showFlow(flowIndex + 1); });
+flowPlay.addEventListener('click', () => (flowTimer ? stopFlow() : startFlow()));
+
+showFlow(0);
+if (reduceMotion) stopFlow(); else startFlow();
