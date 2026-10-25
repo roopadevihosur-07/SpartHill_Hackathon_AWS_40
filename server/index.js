@@ -91,7 +91,7 @@ const wrap = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((err) => 
 
 // ------------------------------------------------------------------ caller API
 
-app.get('/api/health', (req, res) => res.json({ ok: true, model: store.metrics.model ?? config.modelId, configuredModel: config.modelId, region: config.region, guardrail: Boolean(config.guardrailId), cloudwatch: telemetry.status().enabled }));
+app.get('/api/health', (req, res) => res.json({ ok: true, model: store.metrics.model ?? config.modelId, configuredModel: config.modelId, region: config.region, guardrail: Boolean(config.guardrailId), cloudwatch: telemetry.status().enabled, awsCredentials: store.metrics.awsCredentialsFailedAt ? 'failing' : 'ok' }));
 
 app.get('/api/config', (req, res) => {
   res.json({
@@ -219,6 +219,8 @@ admin.get('/aws', (req, res) => {
     region: aws?.region ?? config.region,
     account: aws?.account ?? null,
     model: store.metrics.model ?? config.modelId,
+    // 'failing' = the last model call was rejected for expired/invalid credentials; clears on the next success.
+    credentials: store.metrics.awsCredentialsFailedAt ? 'failing' : 'ok',
     guardrail: config.guardrailId ? { id: config.guardrailId, version: config.guardrailVersion } : null,
     invocationLogging: aws ? { logGroup: aws.invocationLogGroup, fullText: aws.logBodies, retentionDays: aws.retentionDays } : null,
     telemetry: telemetry.status(),

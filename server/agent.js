@@ -5,6 +5,7 @@ import { runTool, toolSpecs } from './tools/index.js';
 import { appendTranscript, buildCards, logDecision, addAlert, pushToSession, touch, itemLabel, needsDelivery } from './store.js';
 import { detectRedFlag, guidanceFor, classifyConsent, inferDelivery } from './redflags.js';
 import { metric } from './telemetry.js';
+import { isCredentialError, CREDENTIAL_ALERT_TITLE, CREDENTIAL_ALERT_DETAIL } from './errors.js';
 
 // Bedrock Guardrail (see infra/guardrail.json): a second line of defence behind the code-level
 // rules. If the Guardrail itself starts failing (deleted, permissions), the app keeps serving
@@ -264,6 +265,10 @@ async function runModelLoop(store, session, ctx, { userText, turnNotes = [], onl
       ctx.messages.push(message);
       ctx.lastRounds = round + 1;
       metric('ModelRoundMs', Date.now() - roundStart, 'Milliseconds');
+      if (store.metrics.awsCredentialsFailedAt) {
+        store.metrics.awsCredentialsFailedAt = null;
+        logDecision(store, { sessionId: session.id, kind: 'aws_credentials', level: 'info', summary: 'AWS credentials are working again', reason: 'A model call succeeded' });
+      }
       if (!guardrailState.warned && config.guardrailId && !guardrailActive()) {
         guardrailState.warned = true;
         logDecision(store, { sessionId: session.id, kind: 'guardrail', level: 'critical', summary: 'Bedrock Guardrail is NOT applied: it failed and was switched off for an hour', reason: 'Code-level safety rules are still enforced' });
@@ -371,7 +376,17 @@ function emitAssistant(store, session, text, extra = {}) {
 function modelFailure(store, session, err) {
   console.error('agent turn failed:', err?.name, err?.message);
   logDecision(store, { sessionId: session.id, kind: 'agent_error', level: 'critical', summary: `Agent turn failed (${err?.name ?? 'error'})`, reason: 'Falling back to a fixed message and alerting the coordinator' });
-  addAlert(store, { sessionId: session.id, severity: 'critical', title: 'Agent error', detail: `A caller turn failed (${err?.name ?? 'error'}). Please follow up.` });
+  if (isCredentialError(err)) {
+    // Not a one-off: nobody can be helped until a person refreshes the credentials. Say exactly that,
+    // once, instead of a vague "agent error" per caller message.
+    store.metrics.awsCredentialsFailedAt = Date.now();
+    logDecision(store, { sessionId: session.id, kind: 'aws_credentials', level: 'critical', summary: `AWS credentials expired or invalid (${err?.name ?? 'error'})`, reason: 'Callers get an apology until the credentials are refreshed and the server restarted' });
+    if (!store.alerts.some((a) => !a.acknowledged && a.title === CREDENTIAL_ALERT_TITLE)) {
+      addAlert(store, { sessionId: session.id, severity: 'critical', title: CREDENTIAL_ALERT_TITLE, detail: CREDENTIAL_ALERT_DETAIL });
+    }
+  } else {
+    addAlert(store, { sessionId: session.id, severity: 'critical', title: 'Agent error', detail: `A caller turn failed (${err?.name ?? 'error'}). Please follow up.` });
+  }
   return emitAssistant(store, session, FAILURE[session.language] ?? FAILURE.en, { error: true });
 }
 

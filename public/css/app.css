@@ -447,3 +447,4 @@ a.btn { text-decoration: none; }
 }
 @keyframes softPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 153, 0, 0.5); } 50% { box-shadow: 0 0 0 12px rgba(255, 153, 0, 0); } }
 .caller-page #cards > * { position: relative; overflow: hidden; }
+.aws-bad { background: var(--bad-tint); border: 1px solid #f1b2a4; border-left: 4px solid var(--bad); color: #7a1f0c; padding: 0.55rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.85rem; margin: 0 0 0.7rem; }

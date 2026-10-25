@@ -50,7 +50,8 @@ Status reflects what exists in this repo and how it was verified. "Verified" mea
   - [x] 9.4 "AWS footprint" panel on the console with live status and links
   - [x] 9.5 Fixes found while testing: 911 guidance no longer waits behind a slow turn; assistant lines no longer rewritten to "this is [NAME]"; Guardrail address filter removed because it replaced neighbourhood names
   - [x] 9.6 Audit fixes (verified by `test:resilience`, `test:dispatch`): Guardrail fail-open now works on the first message; demo endpoints off by default on a network host; urgent non-medicine jobs can batch; failed tool calls are logged readably
-  - [x] 9.7 Voice: no doubled words, no answering Lifeline's own voice, female voice picker (verified in a real Chrome with a fake microphone; real speakers untested)
+  - [x] 9.7 "No response from the agent" fixes: OpenStreetMap tiles send a Referer; console and driver tabs release their live stream while hidden (the browser's 6-connection limit was starving chat; `test:streams:browser`); expired credentials now raise one clear alert and show on `/api/health` and the console (`test:resilience`)
+  - [x] 9.8 Voice: no doubled words, no answering Lifeline's own voice, female voice picker (verified in a real Chrome with a fake microphone; real speakers untested)
 
 ## Not done / needs a human
 

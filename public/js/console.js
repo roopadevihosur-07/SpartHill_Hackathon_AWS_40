@@ -233,12 +233,14 @@ async function loadAws() {
     root.append(el('p', { class: 'small', text: a.setupHint }), el('code', { class: 'small', text: './infra/aws-setup.sh' }));
     return;
   }
-  const healthy = a.telemetry.enabled && a.telemetry.errors === 0 && a.guardrail;
-  badge.textContent = healthy ? 'connected' : 'attention';
+  const expired = a.credentials === 'failing';
+  const healthy = !expired && a.telemetry.enabled && a.telemetry.errors === 0 && a.guardrail;
+  badge.textContent = expired ? 'credentials expired' : healthy ? 'connected' : 'attention';
   badge.className = `badge ${healthy ? 'live' : 'off'}`;
 
   const L = a.links ?? {};
   root.append(
+    expired ? el('p', { class: 'aws-bad', role: 'alert', text: 'AWS credentials have expired. Callers cannot be helped until you refresh them and restart the server. See the alert on the left.' }) : null,
     el('div', { class: 'aws-cta' }, awsLink(L.dashboard, 'Open AWS dashboard', 'btn primary small')),
     awsRow('Account · region', `${a.account} · ${a.region}`),
     awsRow('Model', a.model),
@@ -310,6 +312,7 @@ async function boot() {
 
   connectSse('/api/admin/stream', {
     token,
+    pauseWhenHidden: true,
     onEvent: (event, data) => { if (event === 'snapshot') { snap = data; render(); } },
     onStatus: (s) => {
       const b = $('conn');

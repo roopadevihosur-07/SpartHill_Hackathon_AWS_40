@@ -44,4 +44,6 @@ scripts/                 scenarios (end-to-end), paths (failure paths), surge, b
 - `npm run test:resilience` breaks AWS on purpose (bad Guardrail id, fake credentials) and checks the app degrades safely. Each case runs in its own process because config is read at start-up.
 - `npm run test:dispatch` checks driver choice and batching rules. `npm run test:voice` and `npm run test:voice:browser` cover the caller page's voice handling.
 - **When you change `server/dispatch.js`, run `npm run test:dispatch`.** Critical jobs and medicine must never be batched.
+- **Long-lived streams:** a browser allows 6 connections per address across all tabs. Any new page that holds a stream open must pass `pauseWhenHidden: true` to `connectSse` (see `public/js/common.js`), unless it cannot replay what it missed. Run `npm run test:streams:browser` after touching it.
+- **AWS credential errors** are classified in `server/errors.js` (`isCredentialError`). They raise one clear critical alert and set `store.metrics.awsCredentialsFailedAt`, which `/api/health` and the console's AWS panel show. Throttling, a bad Guardrail and a model that is not enabled are deliberately NOT credential errors.
 - `ENABLE_TEST_API=1 RATE_LIMIT_PER_MIN=5000 npm start`, then `npm run surge`.

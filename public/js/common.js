@@ -39,13 +39,33 @@ export async function api(path, { method = 'GET', body, token, signal } = {}) {
  * Server-sent events over fetch so a header (the admin token) can be sent. Reconnects with backoff.
  * Returns a function that closes the stream.
  */
-export function connectSse(url, { token, onEvent, onStatus }) {
+export function connectSse(url, { token, onEvent, onStatus, pauseWhenHidden = false }) {
   let stopped = false;
   let controller;
   let attempt = 0;
+  let wake = null; // resolves when a hidden tab becomes visible again
+  let abortedForHide = false;
+  // A browser allows only 6 connections per address, shared by ALL tabs. Every open stream holds one
+  // for as long as the tab lives, and when they are used up a caller's chat message waits in the
+  // browser's queue and never reaches the server. Background tabs do not need live updates, so with
+  // pauseWhenHidden they let go of the connection and reconnect (the server sends a full snapshot on
+  // connect) when the tab is shown again. Do not use it for streams that cannot replay what they missed.
+  const hidden = () => pauseWhenHidden && typeof document !== 'undefined' && document.hidden;
+  const onVisibility = () => {
+    if (!pauseWhenHidden) return;
+    if (document.hidden) { abortedForHide = true; controller?.abort(); } else wake?.();
+  };
+  if (pauseWhenHidden) document.addEventListener('visibilitychange', onVisibility);
 
   async function run() {
     while (!stopped) {
+      if (hidden()) {
+        onStatus?.('paused');
+        await new Promise((resolve) => { wake = resolve; });
+        wake = null;
+        continue;
+      }
+      abortedForHide = false;
       controller = new AbortController();
       try {
         onStatus?.('connecting');
@@ -78,12 +98,18 @@ export function connectSse(url, { token, onEvent, onStatus }) {
       } catch (err) {
         if (stopped) return;
       }
+      if (abortedForHide) { abortedForHide = false; continue; } // we let go on purpose: no back-off, no "reconnecting"
       onStatus?.('reconnecting');
       await new Promise((r) => setTimeout(r, Math.min(5000, 500 * 2 ** attempt++)));
     }
   }
   run();
-  return () => { stopped = true; controller?.abort(); };
+  return () => {
+    stopped = true;
+    controller?.abort();
+    wake?.();
+    if (pauseWhenHidden) document.removeEventListener('visibilitychange', onVisibility);
+  };
 }
 
 const TOKEN_KEY = 'lifeline.adminToken';

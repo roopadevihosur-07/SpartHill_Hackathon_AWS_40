@@ -54,6 +54,7 @@ function freshMetrics() {
     redFlags: 0,
     timeToDispatchMs: [],
     logWriteFailures: 0,
+    awsCredentialsFailedAt: null,
     model: undefined,
   };
 }

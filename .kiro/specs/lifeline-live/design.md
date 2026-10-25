@@ -93,6 +93,10 @@ flowchart LR
 - **Invocation logging** stores full prompts and replies unredacted. See `safety.md` rule 11.
 - **Latency cost.** The Guardrail adds about 200 ms of processing per model call in each direction (measured on a direct call).
 
+## Expired AWS credentials
+
+Event credentials are temporary. A rejected call is classified by `server/errors.js`. If it is a credential error, the server logs `aws_credentials` at critical level, raises ONE alert ("AWS credentials expired or invalid", with the fix), sets a flag shown by `/api/health` and the console's AWS panel, and clears the flag when a later model call succeeds. Callers still get the fixed apology, and 911 guidance still works because it needs no AWS call. Verified with both fake keys (`test:resilience`) and a real expired token.
+
 ## Error handling
 
 Bedrock throttling retries with backoff (400 ms, 800 ms, 1.6 s). A failed agent turn gives the caller a fixed apology, raises a critical alert, and rolls back the model history so no dangling tool call remains. A failed `escalate` still delivers 911 guidance and alerts Rosa directly. External API failures return an explicit "unavailable" result; nothing is guessed.

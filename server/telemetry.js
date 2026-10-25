@@ -75,6 +75,7 @@ export function fromDecision(e) {
   else if (e.kind === 'approval_requested') metric('ApprovalsRequested');
   else if (e.kind === 'grounding') metric('GroundingBlocks');
   else if (e.kind === 'guardrail') metric('GuardrailInterventions');
+  else if (e.kind === 'aws_credentials' && e.level === 'critical') metric('AwsCredentialErrors');
   else if (e.kind?.startsWith('tool:') && (e.level === 'warning' || e.level === 'critical')) metric('ToolErrors');
 }
 

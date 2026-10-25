@@ -105,6 +105,7 @@ function watch() {
   stop?.();
   stop = connectSse(`/api/driver/${encodeURIComponent(driverId)}/stream`, {
     token,
+    pauseWhenHidden: true,
     onEvent: (event, data) => { if (event === 'dispatches') render(data); },
     onStatus: (s) => { $('conn').textContent = s === 'live' ? 'Connected. Jobs update live.' : `Connection: ${s}`; },
   });

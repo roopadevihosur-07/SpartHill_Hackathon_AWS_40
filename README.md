@@ -81,6 +81,8 @@ npm run test:resilience    # 14 checks: broken Guardrail, dead AWS credentials (
 npm run test:dispatch      # 8 checks: driver choice and batching rules (instant, no AWS)
 npm run test:voice         # 17 checks: voice choice and echo detection (no browser, no AWS)
 npm install --no-save puppeteer-core && npm run test:voice:browser   # 15 checks in a real Chrome with a fake microphone: no doubled words, no answering its own voice
+npm run test:streams:browser   # 14 checks in Chrome: background tabs release their connection, so chat is never starved (needs puppeteer-core as above)
+ONLY=deadaws,config,errors npm run test:resilience   # run just the resilience groups that need no working AWS credentials
 ENABLE_TEST_API=1 RATE_LIMIT_PER_MIN=5000 npm start
 npm run surge -- --agent 8 # tool layer at 25/50/100/200 concurrent callers + 8 live agent calls
 ```
@@ -98,7 +100,10 @@ A new job may join a driver who already has stops when the extra driving is smal
 - The server binds to `127.0.0.1` and refuses to start on any other host without `ADMIN_TOKEN`.
 - The demo-only endpoints (resident list, answering the outbound "we call you" call) are **on for localhost and off on a network host**. Set `DEMO_MODE=1` to turn them on deliberately; they expose resident names and enrolled needs.
 - If the Bedrock Guardrail breaks, callers are still served without it, a critical alert is raised once, and it is retried after an hour. If AWS credentials expire, callers get a clear apology, the coordinator is alerted, and 911 guidance still works (it needs no AWS call).
-- Workshop credentials are temporary. Refresh them and restart the app before presenting.
+- **Workshop AWS credentials are temporary and expire.** When they do, every model call fails and callers hear "I'm having trouble". The console now says so plainly: a single critical alert "AWS credentials expired or invalid", a red notice and a "credentials expired" badge in the AWS panel, and `GET /api/health` reports `"awsCredentials": "failing"`. To recover, run `aws configure --profile event` (and `aws configure set aws_session_token ... --profile event`), then **restart the server** (it keeps the old keys in memory). 911 guidance does not need AWS and keeps working. Check before presenting: `aws sts get-caller-identity --profile event`.
+- **Start it on the right account:** `AWS_PROFILE=event npm start`. A plain `npm start` uses your default AWS profile, which may be a different account.
+- **Browser connection limit.** A browser allows only 6 connections to one address, shared by every tab. Each open console or driver tab holds one live stream, and when all 6 are used a caller's message waits in the browser and never reaches the server. Console and driver tabs therefore release their stream while in the background and reconnect when shown (`pauseWhenHidden` in `public/js/common.js`). Still, close tabs you are not using.
+- **Map tiles.** OpenStreetMap returns a grey "403 Access blocked" tile to requests without a `Referer`. The site sends `Referrer-Policy: no-referrer` everywhere else, so the map's tile layer opts in (origin only) in `public/js/map.js`. The map needs internet access.
 
 ## Known limits
 

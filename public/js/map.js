@@ -49,6 +49,11 @@ export function createLiveMap(container) {
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; OpenStreetMap contributors',
+    // OpenStreetMap's tile policy requires a Referer header and returns a grey "403 Access blocked"
+    // image without one. The site sends "Referrer-Policy: no-referrer" everywhere else (privacy), so
+    // allow it for these tile requests only. Only the origin (for example http://127.0.0.1:3000/)
+    // is sent, never a path or query.
+    referrerPolicy: 'strict-origin-when-cross-origin',
   }).addTo(map);
 
   const layer = L.layerGroup().addTo(map);

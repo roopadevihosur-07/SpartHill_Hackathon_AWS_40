@@ -16,6 +16,7 @@
     "test:resilience": "node --env-file-if-exists=.env scripts/resilience.mjs",
     "test:voice": "node scripts/voice-unit.mjs",
     "test:voice:browser": "node scripts/voice-browser.mjs",
+    "test:streams:browser": "node scripts/streams-browser.mjs",
     "bench": "node --env-file-if-exists=.env scripts/bench-models.mjs",
     "surge": "node --env-file-if-exists=.env scripts/surge.mjs"
   },
